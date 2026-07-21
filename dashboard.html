@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machine Production Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+<style>
+  :root {
+    --ink: #16181c;
+    --panel: #1f232a;
+    --panel-2: #262b33;
+    --line: #33383f;
+    --amber: #f2a541;
+    --ok: #3fb27f;
+    --err: #e2564f;
+    --text: #f2f0eb;
+    --text-dim: #9aa0aa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 { font-size: 20px; margin: 0; font-weight: 700; }
+  header .sub { color: var(--text-dim); font-size: 13px; }
+
+  .controls {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .control { display: flex; flex-direction: column; gap: 6px; }
+  .control label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+  .control select, .control input {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 160px;
+  }
+  .status-pill {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--panel);
+    color: var(--text-dim);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); }
+  .status-pill.live .dot { background: var(--ok); }
+
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .summary-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .summary-card .label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .summary-card .value { font-size: 26px; font-weight: 700; }
+  .summary-card.unassigned .value { color: var(--err); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .panel h2 { font-size: 15px; margin: 0 0 16px; font-weight: 700; }
+  .panel .panel-sub { color: var(--text-dim); font-size: 12px; margin-top: -12px; margin-bottom: 16px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--text-dim); font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-scroll { max-height: 360px; overflow-y: auto; }
+
+  .op-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .op-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  button {
+    background: var(--amber);
+    color: #1a1204;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:active { opacity: 0.85; }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+
+  .empty-note { color: var(--text-dim); font-size: 13px; padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Machine Production Dashboard</h1>
+    <div class="sub">Production is allocated to operators automatically, based on punch-in / punch-out time windows.</div>
+  </div>
+  <span class="status-pill" id="connPill"><span class="dot"></span><span id="connText">Connecting…</span></span>
+</header>
+
+<div class="controls">
+  <div class="control">
+    <label for="machineSelect">Machine</label>
+    <select id="machineSelect"><option value="">Loading…</option></select>
+  </div>
+  <div class="control">
+    <label for="rangeSelect">Range</label>
+    <select id="rangeSelect">
+      <option value="7">Last 7 days</option>
+      <option value="30" selected>Last 30 days</option>
+      <option value="90">Last 90 days</option>
+    </select>
+  </div>
+  <div class="control">
+    <button class="secondary" id="downloadBtn">Download Report (.xlsx)</button>
+  </div>
+</div>
+
+<main>
+  <div class="summary-row" id="summaryRow"></div>
+
+  <div class="panel">
+    <h2>Daily Production by Operator</h2>
+    <div class="panel-sub">Each bar segment is one operator's punched-in production that day.</div>
+    <canvas id="dailyChart" height="90"></canvas>
+  </div>
+
+  <div class="panel">
+    <h2>Operator Totals</h2>
+    <div class="panel-sub" id="operatorTotalsSub"></div>
+    <div class="table-scroll">
+      <table id="operatorTable">
+        <thead><tr><th>Operator</th><th class="num">Total Production</th><th class="num">Sessions</th></tr></thead>
+        <tbody id="operatorTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Day-wise Breakdown</h2>
+    <div class="table-scroll">
+      <table id="dailyTable">
+        <thead><tr><th>Date</th><th>Operator</th><th class="num">Production</th></tr></thead>
+        <tbody id="dailyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js';
+import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAY_kKOZ8oExdu7WvW6IODW9IinS31lTlo",
+  authDomain: "without-rd-id.firebaseapp.com",
+  databaseURL: "https://without-rd-id-default-rtdb.firebaseio.com",
+  projectId: "without-rd-id",
+  storageBucket: "without-rd-id.firebasestorage.app",
+  messagingSenderId: "881069463815",
+  appId: "1:881069463815:web:2dab212e0feebbe0748da2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const connPill = document.getElementById('connPill');
+const connText = document.getElementById('connText');
+const machineSelect = document.getElementById('machineSelect');
+const rangeSelect = document.getElementById('rangeSelect');
+const downloadBtn = document.getElementById('downloadBtn');
+
+let currentMachine = null;
+let currentEvents = {};    // raw Sensor/{machine}/events snapshot
+let currentSessions = {};  // raw Sessions/{machine} snapshot
+let operatorNames = {};    // operatorId -> name, from Operators/
+let lastAllocation = null; // cached result for download button
+let chart = null;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    connPill.classList.add('live');
+    connText.textContent = 'Connected';
+    loadOperatorNames();
+    loadMachineList();
+  } else {
+    signInAnonymously(auth).catch(err => {
+      connText.textContent = 'Connection failed';
+    });
+  }
+});
+
+function loadOperatorNames() {
+  onValue(ref(db, 'Operators'), (snap) => {
+    operatorNames = {};
+    const data = snap.val() || {};
+    Object.keys(data).forEach(id => { operatorNames[id] = data[id].name || id; });
+  });
+}
+
+function loadMachineList() {
+  onValue(ref(db, 'Machines'), (snap) => {
+    const data = snap.val() || {};
+    const machineIds = Object.keys(data);
+    machineSelect.innerHTML = '';
+    if (machineIds.length === 0) {
+      machineSelect.innerHTML = '<option value="">No machines found</option>';
+      return;
+    }
+    machineIds.sort().forEach(id => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = id;
+      machineSelect.appendChild(opt);
+    });
+    if (!currentMachine) {
+      currentMachine = machineIds[0];
+      machineSelect.value = currentMachine;
+      subscribeToMachine(currentMachine);
+    }
+  });
+}
+
+machineSelect.addEventListener('change', () => {
+  currentMachine = machineSelect.value;
+  if (currentMachine) subscribeToMachine(currentMachine);
+});
+rangeSelect.addEventListener('change', () => renderAll());
+
+function subscribeToMachine(machineId) {
+  onValue(ref(db, `Sensor/${machineId}/events`), (snap) => {
+    currentEvents = snap.val() || {};
+    renderAll();
+  });
+  onValue(ref(db, `Sessions/${machineId}`), (snap) => {
+    currentSessions = snap.val() || {};
+    renderAll();
+  });
+}
+
+/* =========================================================
+   ALLOCATION LOGIC
+   Matches each raw production event's timestamp to the
+   punch session whose [punchIn, punchOut] window contains
+   it. Events that fall in no window are bucketed as
+   "Unassigned" - a visible gap, not a silent loss.
+   ========================================================= */
+function allocate(eventsObj, sessionsObj, rangeDays) {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const cutoffSec = nowSec - rangeDays * 86400;
+
+  const sessions = Object.entries(sessionsObj)
+    .map(([key, s]) => ({
+      key,
+      operatorId: s.operatorId,
+      name: s.name || operatorNames[s.operatorId] || s.operatorId,
+      punchIn: s.punchIn,
+      punchOut: s.punchOut || nowSec // still-open session counts up to now
+    }))
+    .filter(s => s.punchIn >= cutoffSec)
+    .sort((a, b) => a.punchIn - b.punchIn);
+
+  const events = Object.values(eventsObj)
+    .filter(e => e.timestamp >= cutoffSec);
+
+  const operatorTotals = {};   // operatorId -> { name, total, sessionKeys:Set }
+  const dailyByOperator = {};  // date -> operatorId -> total
+  let unassignedTotal = 0;
+
+  function dateKeyFor(ts) {
+    const d = new Date(ts * 1000);
+    return d.toISOString().slice(0, 10);
+  }
+
+  events.forEach(ev => {
+    const match = sessions.find(s => ev.timestamp >= s.punchIn && ev.timestamp <= s.punchOut);
+    const dateKey = dateKeyFor(ev.timestamp);
+    if (!dailyByOperator[dateKey]) dailyByOperator[dateKey] = {};
+
+    if (match) {
+      if (!operatorTotals[match.operatorId]) {
+        operatorTotals[match.operatorId] = { name: match.name, total: 0, sessionKeys: new Set() };
+      }
+      operatorTotals[match.operatorId].total += ev.count;
+      operatorTotals[match.operatorId].sessionKeys.add(match.key);
+      dailyByOperator[dateKey][match.operatorId] = (dailyByOperator[dateKey][match.operatorId] || 0) + ev.count;
+    } else {
+      unassignedTotal += ev.count;
+      dailyByOperator[dateKey]['Unassigned'] = (dailyByOperator[dateKey]['Unassigned'] || 0) + ev.count;
+    }
+  });
+
+  return { operatorTotals, dailyByOperator, unassignedTotal, totalEvents: events.length, sessionCount: sessions.length };
+}
+
+/* =========================================================
+   RENDERING
+   ========================================================= */
+function colorFor(operatorId) {
+  if (operatorId === 'Unassigned') return '#e2564f';
+  let hash = 0;
+  for (let i = 0; i < operatorId.length; i++) hash = operatorId.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 65%, 55%)`;
+}
+
+function renderAll() {
+  if (!currentMachine) return;
+  const rangeDays = parseInt(rangeSelect.value, 10);
+  const result = allocate(currentEvents, currentSessions, rangeDays);
+  lastAllocation = result;
+
+  renderSummary(result);
+  renderOperatorTable(result);
+  renderDailyTable(result);
+  renderChart(result);
+}
+
+function renderSummary(result) {
+  const totalProduction = Object.values(result.operatorTotals).reduce((a, o) => a + o.total, 0) + result.unassignedTotal;
+  const el = document.getElementById('summaryRow');
+  el.innerHTML = `
+    <div class="summary-card">
+      <div class="label">Total Production</div>
+      <div class="value">${totalProduction.toFixed(1)}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Active Operators</div>
+      <div class="value">${Object.keys(result.operatorTotals).length}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Punch Sessions</div>
+      <div class="value">${result.sessionCount}</div>
+    </div>
+    <div class="summary-card unassigned">
+      <div class="label">Unassigned</div>
+      <div class="value">${result.unassignedTotal.toFixed(1)}</div>
+    </div>
+  `;
+}
+
+function renderOperatorTable(result) {
+  const body = document.getElementById('operatorTableBody');
+  const sub = document.getElementById('operatorTotalsSub');
+  const entries = Object.entries(result.operatorTotals).sort((a, b) => b[1].total - a[1].total);
+
+  if (entries.length === 0 && result.unassignedTotal === 0) {
+    body.innerHTML = '<tr><td colspan="3" class="empty-note">No production data in this range.</td></tr>';
+    sub.textContent = '';
+    return;
+  }
+  sub.textContent = `Showing operators with production in the selected range.`;
+
+  body.innerHTML = entries.map(([id, o]) => `
+    <tr>
+      <td><span class="op-tag"><span class="op-swatch" style="background:${colorFor(id)}"></span>${o.name}</span></td>
+      <td class="num">${o.total.toFixed(1)}</td>
+      <td class="num">${o.sessionKeys.size}</td>
+    </tr>
+  `).join('') + (result.unassignedTotal > 0 ? `
+    <tr>
+      <td><span class="op-tag"><span class="op-swatch" style="background:${colorFor('Unassigned')}"></span>Unassigned (no punch record)</span></td>
+      <td class="num">${result.unassignedTotal.toFixed(1)}</td>
+      <td class="num">—</td>
+    </tr>
+  ` : '');
+}
+
+function renderDailyTable(result) {
+  const body = document.getElementById('dailyTableBody');
+  const rows = [];
+  Object.keys(result.dailyByOperator).sort().reverse().forEach(date => {
+    Object.entries(result.dailyByOperator[date]).forEach(([opId, count]) => {
+      const name = opId === 'Unassigned' ? 'Unassigned' : (result.operatorTotals[opId]?.name || opId);
+      rows.push({ date, name, count });
+    });
+  });
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="3" class="empty-note">No production data in this range.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(r => `
+    <tr><td>${r.date}</td><td>${r.name}</td><td class="num">${r.count.toFixed(1)}</td></tr>
+  `).join('');
+}
+
+function renderChart(result) {
+  const dates = Object.keys(result.dailyByOperator).sort();
+  const operatorIds = new Set();
+  dates.forEach(d => Object.keys(result.dailyByOperator[d]).forEach(id => operatorIds.add(id)));
+
+  const datasets = Array.from(operatorIds).map(id => ({
+    label: id === 'Unassigned' ? 'Unassigned' : (result.operatorTotals[id]?.name || id),
+    data: dates.map(d => result.dailyByOperator[d][id] || 0),
+    backgroundColor: colorFor(id)
+  }));
+
+  const ctx = document.getElementById('dailyChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: dates, datasets },
+    options: {
+      responsive: true,
+      scales: {
+        x: { stacked: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { stacked: true, beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      },
+      plugins: { legend: { labels: { color: '#f2f0eb' } } }
+    }
+  });
+}
+
+downloadBtn.addEventListener('click', () => {
+  if (!lastAllocation) return;
+  const rows = [];
+  Object.keys(lastAllocation.dailyByOperator).sort().forEach(date => {
+    Object.entries(lastAllocation.dailyByOperator[date]).forEach(([opId, count]) => {
+      const name = opId === 'Unassigned' ? 'Unassigned' : (lastAllocation.operatorTotals[opId]?.name || opId);
+      rows.push({ Date: date, Machine: currentMachine, Operator: name, Production: parseFloat(count.toFixed(1)) });
+    });
+  });
+  const workbook = XLSX.utils.book_new();
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(workbook, sheet, `${currentMachine} Daily`);
+  XLSX.writeFile(workbook, `${currentMachine}_production_by_operator.xlsx`);
+});
+</script>
+</body>
+</html>

@@ -130,7 +130,53 @@
       </div>
     </div>
     <div class="tab-panel" id="tab-staffs">
-      <div class="placeholder-note">Staffs tab — built in the next step.</div>
+      <div class="summary-row" id="staffsSummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <div>
+            <h2 style="font-size:15px;margin:0 0 4px;">Daily Production by Operator</h2>
+            <div style="color:var(--text-dim);font-size:12px;">Each bar segment is one operator's punched-in production that day.</div>
+          </div>
+          <select id="staffsRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </div>
+        <canvas id="staffsDailyChart" height="90"></canvas>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <h2 style="font-size:15px;margin:0;">Operator Totals</h2>
+          <button id="staffsDownloadBtn" style="background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">Download Report (.xlsx)</button>
+        </div>
+        <div style="max-height:360px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Operator</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Total Production</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Sessions</th>
+            </tr></thead>
+            <tbody id="staffsOperatorTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <h2 style="font-size:15px;margin:0 0 16px;">Day-wise Breakdown</h2>
+        <div style="max-height:360px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Date</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Operator</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Production</th>
+            </tr></thead>
+            <tbody id="staffsDailyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
     <div class="tab-panel" id="tab-downtime">
       <div class="placeholder-note">Downtime tab — built in a later step.</div>
@@ -420,7 +466,199 @@ function renderSpeedChart() {
 onAuthStateChanged(auth, (user) => {
   if (user && user.providerData.length > 0) {
     loadMachineList();
+    loadOperatorNames();
   }
+});
+
+/* =========================================================
+   STAFFS TAB
+   Ported from dashboard.html. Allocates raw Sensor events to
+   operators by matching each event's timestamp against
+   Sessions[machineId] punchIn/punchOut windows. Events with
+   no matching session are shown separately as "Unassigned"
+   rather than dropped.
+   ========================================================= */
+let currentSessions = {};
+let operatorNames = {};
+let staffsChart = null;
+let lastAllocation = null;
+
+function loadOperatorNames() {
+  dbOnValue(dbRef(db, 'Operators'), (snap) => {
+    operatorNames = {};
+    const data = snap.val() || {};
+    Object.keys(data).forEach(id => { operatorNames[id] = data[id].name || id; });
+  });
+}
+
+// Hook into the same machine subscription used by Production,
+// adding a Sessions listener alongside it.
+const _originalSubscribeToMachine = subscribeToMachine;
+subscribeToMachine = function (machineId) {
+  _originalSubscribeToMachine(machineId);
+  dbOnValue(dbRef(db, `Sessions/${machineId}`), (snap) => {
+    currentSessions = snap.val() || {};
+    renderStaffsAll();
+  });
+};
+
+document.getElementById('staffsRangeSelect').addEventListener('change', () => renderStaffsAll());
+
+function colorFor(operatorId) {
+  if (operatorId === 'Unassigned') return '#e2564f';
+  let hash = 0;
+  for (let i = 0; i < operatorId.length; i++) hash = operatorId.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 65%, 55%)`;
+}
+
+function allocate(eventsObj, sessionsObj, rangeDays) {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const cutoffSec = nowSec - rangeDays * 86400;
+
+  const sessions = Object.entries(sessionsObj)
+    .map(([key, s]) => ({
+      key, operatorId: s.operatorId,
+      name: s.name || operatorNames[s.operatorId] || s.operatorId,
+      punchIn: s.punchIn, punchOut: s.punchOut || nowSec
+    }))
+    .filter(s => s.punchIn >= cutoffSec)
+    .sort((a, b) => a.punchIn - b.punchIn);
+
+  const events = Object.values(eventsObj).filter(e => e.timestamp >= cutoffSec);
+  const operatorTotals = {};
+  const dailyByOperator = {};
+  let unassignedTotal = 0;
+
+  events.forEach(ev => {
+    const match = sessions.find(s => ev.timestamp >= s.punchIn && ev.timestamp <= s.punchOut);
+    const dateKey = dateKeyFor(ev.timestamp);
+    if (!dailyByOperator[dateKey]) dailyByOperator[dateKey] = {};
+    if (match) {
+      if (!operatorTotals[match.operatorId]) operatorTotals[match.operatorId] = { name: match.name, total: 0, sessionKeys: new Set() };
+      operatorTotals[match.operatorId].total += ev.count;
+      operatorTotals[match.operatorId].sessionKeys.add(match.key);
+      dailyByOperator[dateKey][match.operatorId] = (dailyByOperator[dateKey][match.operatorId] || 0) + ev.count;
+    } else {
+      unassignedTotal += ev.count;
+      dailyByOperator[dateKey]['Unassigned'] = (dailyByOperator[dateKey]['Unassigned'] || 0) + ev.count;
+    }
+  });
+
+  return { operatorTotals, dailyByOperator, unassignedTotal, totalEvents: events.length, sessionCount: sessions.length };
+}
+
+function renderStaffsAll() {
+  if (!currentMachine) return;
+  const rangeDays = parseInt(document.getElementById('staffsRangeSelect').value, 10);
+  const result = allocate(currentEvents, currentSessions, rangeDays);
+  lastAllocation = result;
+  renderStaffsSummary(result);
+  renderStaffsOperatorTable(result);
+  renderStaffsDailyTable(result);
+  renderStaffsChart(result);
+}
+
+function renderStaffsSummary(result) {
+  const totalProduction = Object.values(result.operatorTotals).reduce((a, o) => a + o.total, 0) + result.unassignedTotal;
+  document.getElementById('staffsSummaryRow').innerHTML = `
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Production</div>
+      <div style="font-size:26px;font-weight:700;">${totalProduction.toFixed(1)}</div>
+    </div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Active Operators</div>
+      <div style="font-size:26px;font-weight:700;">${Object.keys(result.operatorTotals).length}</div>
+    </div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Punch Sessions</div>
+      <div style="font-size:26px;font-weight:700;">${result.sessionCount}</div>
+    </div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Unassigned</div>
+      <div style="font-size:26px;font-weight:700;color:var(--err);">${result.unassignedTotal.toFixed(1)}</div>
+    </div>
+  `;
+}
+
+function renderStaffsOperatorTable(result) {
+  const body = document.getElementById('staffsOperatorTableBody');
+  const entries = Object.entries(result.operatorTotals).sort((a, b) => b[1].total - a[1].total);
+  if (entries.length === 0 && result.unassignedTotal === 0) {
+    body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">No production data in this range.</td></tr>';
+    return;
+  }
+  body.innerHTML = entries.map(([id, o]) => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:${colorFor(id)};display:inline-block;"></span>${o.name}</span></td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${o.total.toFixed(1)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${o.sessionKeys.size}</td>
+    </tr>
+  `).join('') + (result.unassignedTotal > 0 ? `
+    <tr>
+      <td style="padding:10px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:${colorFor('Unassigned')};display:inline-block;"></span>Unassigned (no punch record)</span></td>
+      <td style="padding:10px 12px;text-align:right;">${result.unassignedTotal.toFixed(1)}</td>
+      <td style="padding:10px 12px;text-align:right;">—</td>
+    </tr>
+  ` : '');
+}
+
+function renderStaffsDailyTable(result) {
+  const body = document.getElementById('staffsDailyTableBody');
+  const rows = [];
+  Object.keys(result.dailyByOperator).sort().reverse().forEach(date => {
+    Object.entries(result.dailyByOperator[date]).forEach(([opId, count]) => {
+      const name = opId === 'Unassigned' ? 'Unassigned' : (result.operatorTotals[opId]?.name || opId);
+      rows.push({ date, name, count });
+    });
+  });
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:20px 0;">No production data in this range.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(r => `
+    <tr><td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td><td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.name}</td><td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.count.toFixed(1)}</td></tr>
+  `).join('');
+}
+
+function renderStaffsChart(result) {
+  const dates = Object.keys(result.dailyByOperator).sort();
+  const operatorIds = new Set();
+  dates.forEach(d => Object.keys(result.dailyByOperator[d]).forEach(id => operatorIds.add(id)));
+  const datasets = Array.from(operatorIds).map(id => ({
+    label: id === 'Unassigned' ? 'Unassigned' : (result.operatorTotals[id]?.name || id),
+    data: dates.map(d => result.dailyByOperator[d][id] || 0),
+    backgroundColor: colorFor(id)
+  }));
+  const ctx = document.getElementById('staffsDailyChart').getContext('2d');
+  if (staffsChart) staffsChart.destroy();
+  staffsChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: dates, datasets },
+    options: {
+      responsive: true,
+      scales: {
+        x: { stacked: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { stacked: true, beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      },
+      plugins: { legend: { labels: { color: '#f2f0eb' } } }
+    }
+  });
+}
+
+document.getElementById('staffsDownloadBtn').addEventListener('click', () => {
+  if (!lastAllocation) return;
+  const rows = [];
+  Object.keys(lastAllocation.dailyByOperator).sort().forEach(date => {
+    Object.entries(lastAllocation.dailyByOperator[date]).forEach(([opId, count]) => {
+      const name = opId === 'Unassigned' ? 'Unassigned' : (lastAllocation.operatorTotals[opId]?.name || opId);
+      rows.push({ Date: date, Machine: currentMachine, Operator: name, Production: parseFloat(count.toFixed(1)) });
+    });
+  });
+  const workbook = XLSX.utils.book_new();
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(workbook, sheet, `${currentMachine} Daily`);
+  XLSX.writeFile(workbook, `${currentMachine}_production_by_operator.xlsx`);
 });
 </script>
 </body>

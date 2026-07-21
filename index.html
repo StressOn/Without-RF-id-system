@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factory Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+<style>
+  :root {
+    --ink: #16181c; --panel: #1f232a; --line: #33383f;
+    --amber: #f2a541; --ok: #3fb27f; --warn: #e0b23a; --err: #e2564f;
+    --text: #f2f0eb; --text-dim: #9aa0aa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+
+  /* ---------- Login screen ---------- */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .login-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 32px; width: 100%; max-width: 360px;
+  }
+  .login-card h1 { font-size: 20px; margin: 0 0 4px; }
+  .login-card .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 24px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .field input {
+    width: 100%; background: var(--ink); border: 1px solid var(--line); color: var(--text);
+    font-size: 15px; padding: 12px 14px; border-radius: 8px; outline: none;
+  }
+  .field input:focus { border-color: var(--amber); }
+  button.primary {
+    width: 100%; background: var(--amber); color: #1a1204; border: none; border-radius: 8px;
+    padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px;
+  }
+  .login-err { color: var(--err); font-size: 13px; margin-top: 14px; display: none; }
+  .login-err.show { display: block; }
+
+  /* ---------- App shell ---------- */
+  #appShell { display: none; }
+  nav.tabs {
+    display: flex; gap: 4px; padding: 12px 24px; border-bottom: 1px solid var(--line);
+    flex-wrap: wrap; align-items: center; justify-content: space-between;
+  }
+  nav.tabs .tab-links { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav.tabs a { color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+  nav.tabs a.active { background: var(--panel); color: var(--amber); font-weight: 700; }
+  nav.tabs .user-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-dim); }
+  nav.tabs button.logout { background: transparent; border: 1px solid var(--line); color: var(--text-dim); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .placeholder-note {
+    background: var(--panel); border: 1px dashed var(--line); border-radius: 12px;
+    padding: 32px; text-align: center; color: var(--text-dim); font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>Factory Dashboard</h1>
+    <div class="sub">Supervisor login required.</div>
+    <div class="field">
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password">
+    </div>
+    <button class="primary" id="loginBtn">Log In</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ================= APP SHELL (shown after login) ================= -->
+<div id="appShell">
+  <nav class="tabs">
+    <div class="tab-links">
+      <a data-tab="production" class="active">Production</a>
+      <a data-tab="staffs">Staffs</a>
+      <a data-tab="downtime">Downtime</a>
+      <a data-tab="quality">Quality</a>
+      <a data-tab="oee">OEE</a>
+    </div>
+    <div class="user-info">
+      <span id="userEmailLabel"></span>
+      <button class="logout" id="logoutBtn">Log Out</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="tab-panel active" id="tab-production">
+      <div class="placeholder-note">Production tab — built in the next step.</div>
+    </div>
+    <div class="tab-panel" id="tab-staffs">
+      <div class="placeholder-note">Staffs tab — built in the next step.</div>
+    </div>
+    <div class="tab-panel" id="tab-downtime">
+      <div class="placeholder-note">Downtime tab — built in a later step.</div>
+    </div>
+    <div class="tab-panel" id="tab-quality">
+      <div class="placeholder-note">Quality tab — built in a later step.</div>
+    </div>
+    <div class="tab-panel" id="tab-oee">
+      <div class="placeholder-note">OEE tab — built in a later step.</div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js';
+import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAY_kKOZ8oExdu7WvW6IODW9IinS31lTlo",
+  authDomain: "without-rd-id.firebaseapp.com",
+  databaseURL: "https://without-rd-id-default-rtdb.firebaseio.com",
+  projectId: "without-rd-id",
+  storageBucket: "without-rd-id.firebasestorage.app",
+  messagingSenderId: "881069463815",
+  appId: "1:881069463815:web:2dab212e0feebbe0748da2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const loginScreen = document.getElementById('loginScreen');
+const appShell = document.getElementById('appShell');
+const loginBtn = document.getElementById('loginBtn');
+const loginErr = document.getElementById('loginErr');
+const userEmailLabel = document.getElementById('userEmailLabel');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// Gate: only a real (non-anonymous) signed-in user sees the dashboard.
+// This mirrors the database rules - the rules are the actual security
+// boundary, this is just the matching UI behavior.
+onAuthStateChanged(auth, (user) => {
+  if (user && user.providerData.length > 0) {
+    loginScreen.style.display = 'none';
+    appShell.style.display = 'block';
+    userEmailLabel.textContent = user.email;
+  } else {
+    loginScreen.style.display = 'flex';
+    appShell.style.display = 'none';
+  }
+});
+
+loginBtn.addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  loginErr.classList.remove('show');
+
+  if (!email || !password) {
+    loginErr.textContent = 'Enter your email and password.';
+    loginErr.classList.add('show');
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    loginErr.textContent = 'Login failed: ' + err.message;
+    loginErr.classList.add('show');
+  }
+});
+
+document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') loginBtn.click();
+});
+
+logoutBtn.addEventListener('click', () => signOut(auth));
+
+// ---- Tab switching ----
+document.querySelectorAll('nav.tabs a[data-tab]').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs a[data-tab]').forEach(a => a.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    link.classList.add('active');
+    document.getElementById('tab-' + link.dataset.tab).classList.add('active');
+  });
+});
+
+// Exported for the next build steps to use inside each tab
+window.__dashboard = { app, db, auth };
+</script>
+</body>
+</html>

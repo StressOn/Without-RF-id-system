@@ -230,7 +230,7 @@ function watchMachineState() {
       runningView.classList.remove('hidden');
       loginView.classList.add('hidden');
       runningOpName.textContent = data.name || data.operatorId;
-      const since = data.punchInTime ? new Date(data.punchInTime).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
+      const since = data.punchInTime ? new Date(data.punchInTime * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
       runningSince.textContent = since ? `Punched in at ${since}` : '';
     } else {
       runningView.classList.add('hidden');
@@ -260,7 +260,7 @@ document.getElementById('punchInBtn').addEventListener('click', async () => {
       return;
     }
 
-    const punchInTime = Date.now();
+    const punchInTime = Math.floor(Date.now() / 1000); // seconds, to match ESP32 timestamps
     const sessionRef = push(ref(db, `Sessions/${machineId}`));
     await set(sessionRef, {
       operatorId,
@@ -291,7 +291,7 @@ document.getElementById('punchOutBtn').addEventListener('click', async () => {
     if (!currentOp) return;
 
     if (currentOp.sessionId) {
-      await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/punchOut`), Date.now());
+      await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/punchOut`), Math.floor(Date.now() / 1000));
       await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/status`), 'closed');
     }
 

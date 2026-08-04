@@ -352,7 +352,7 @@ document.querySelectorAll('nav.tabs a[data-tab]').forEach(link => {
    existing Sensor events + Machines heartbeat - no firmware
    changes needed.
    ========================================================= */
-import { ref as dbRef, onValue as dbOnValue } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+import { ref as dbRef, onValue as dbOnValue, off as dbOff } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
 
 const OFFLINE_AFTER_SEC = 120;
 const IDLE_AFTER_SEC = 300;
@@ -360,6 +360,7 @@ const SPEED_WINDOW_SEC = 600;
 
 const machineSelect = document.getElementById('machineSelect');
 let currentMachine = null;
+let previousMachine = null; // tracked so we can detach that machine's listeners on switch
 let currentEvents = {};
 let lastSeen = null;
 let threeDayChart = null;
@@ -395,6 +396,20 @@ machineSelect.addEventListener('change', () => {
 });
 
 function subscribeToMachine(machineId) {
+  // Detach every listener tied to the PREVIOUSLY selected machine first.
+  // Without this, switching machines leaves old listeners running - and if
+  // that old machine's data ever changes (including being deleted), it can
+  // fire again and overwrite the new machine's data in these shared
+  // variables. This is what caused Staffs to show everything as
+  // "Unassigned" after switching away from the old M01 entry.
+  if (previousMachine && previousMachine !== machineId) {
+    dbOff(dbRef(db, `Machines/${previousMachine}/lastSeen`));
+    dbOff(dbRef(db, `Sensor/${previousMachine}/events`));
+    dbOff(dbRef(db, `Sessions/${previousMachine}`));
+    dbOff(dbRef(db, `DowntimeActive/${previousMachine}`));
+  }
+  previousMachine = machineId;
+
   dbOnValue(dbRef(db, `Machines/${machineId}/lastSeen`), (snap) => {
     lastSeen = snap.val();
     renderStatus();
@@ -758,6 +773,18 @@ let currentDowntimeHistory = {}; // { date: { machineId: { pushId: record } } } 
 let downtimeReasonChart = null;
 let downtimeTrendChart = null;
 
+let downtimeRootSubscribed = false;
+let rawDowntimeSnapshot = {};
+
+function recomputeDowntimeHistoryForCurrentMachine() {
+  const forThisMachine = {};
+  Object.keys(rawDowntimeSnapshot).forEach(date => {
+    if (rawDowntimeSnapshot[date][currentMachine]) forThisMachine[date] = rawDowntimeSnapshot[date][currentMachine];
+  });
+  currentDowntimeHistory = forThisMachine;
+  renderDowntimeAll();
+}
+
 const _prevSubscribeToMachine = subscribeToMachine;
 subscribeToMachine = function (machineId) {
   _prevSubscribeToMachine(machineId);
@@ -767,15 +794,22 @@ subscribeToMachine = function (machineId) {
     renderDowntimeStatus();
   });
 
-  dbOnValue(dbRef(db, 'Downtime'), (snap) => {
-    const allDates = snap.val() || {};
-    const forThisMachine = {};
-    Object.keys(allDates).forEach(date => {
-      if (allDates[date][machineId]) forThisMachine[date] = allDates[date][machineId];
+  // Subscribed once, not once per machine switch. Filters by whatever
+  // currentMachine IS at the moment data arrives, rather than the machineId
+  // this particular call started with - that stale-closure pattern is
+  // exactly what caused the earlier cross-machine data contamination bug.
+  if (!downtimeRootSubscribed) {
+    downtimeRootSubscribed = true;
+    dbOnValue(dbRef(db, 'Downtime'), (snap) => {
+      rawDowntimeSnapshot = snap.val() || {};
+      recomputeDowntimeHistoryForCurrentMachine();
     });
-    currentDowntimeHistory = forThisMachine;
-    renderDowntimeAll();
-  });
+  } else {
+    // Root listener already attached from a previous machine - re-filter
+    // the cached snapshot for the newly selected machine immediately,
+    // rather than waiting for Downtime data to next change.
+    recomputeDowntimeHistoryForCurrentMachine();
+  }
 };
 
 document.getElementById('downtimeRangeSelect').addEventListener('change', () => renderDowntimeAll());

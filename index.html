@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Factory Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
 <style>
   :root {
@@ -44,77 +44,21 @@
   /* ---------- App shell ---------- */
   #appShell { display: none; }
   nav.tabs {
-    display: flex; gap: 4px; padding: 12px 16px; border-bottom: 1px solid var(--line);
+    display: flex; gap: 4px; padding: 12px 24px; border-bottom: 1px solid var(--line);
     flex-wrap: wrap; align-items: center; justify-content: space-between;
   }
   nav.tabs .tab-links { display: flex; gap: 4px; flex-wrap: wrap; }
-  nav.tabs a { 
-    color: var(--text-dim); text-decoration: none; font-size: 12px; padding: 6px 10px; border-radius: 8px; cursor: pointer; 
-    white-space: nowrap;
-  }
+  nav.tabs a { color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
   nav.tabs a.active { background: var(--panel); color: var(--amber); font-weight: 700; }
-  nav.tabs .user-info { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); flex-wrap: wrap; }
-  nav.tabs button.logout { background: transparent; border: 1px solid var(--line); color: var(--text-dim); padding: 4px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; }
+  nav.tabs .user-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-dim); }
+  nav.tabs button.logout { background: transparent; border: 1px solid var(--line); color: var(--text-dim); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
-  main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   .placeholder-note {
     background: var(--panel); border: 1px dashed var(--line); border-radius: 12px;
     padding: 32px; text-align: center; color: var(--text-dim); font-size: 14px;
-  }
-
-  /* Responsive controls */
-  .controls {
-    display: flex; gap: 14px; align-items: flex-end; padding: 12px 16px; 
-    border-bottom: 1px solid var(--line); flex-wrap: wrap;
-  }
-  .control { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; }
-  .control label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
-  .control select {
-    background: var(--panel); border: 1px solid var(--line); color: var(--text);
-    padding: 10px 12px; border-radius: 8px; font-size: 14px; width: 100%;
-  }
-
-  /* Card & table responsive */
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
-  .panel h2 { font-size: 14px; margin: 0 0 4px; }
-  .panel .sub { color: var(--text-dim); font-size: 11px; margin-bottom: 12px; }
-  
-  .two-col { display: grid; grid-template-columns: 1fr; gap: 16px; }
-  @media (min-width: 768px) { .two-col { grid-template-columns: 1fr 1fr; } }
-
-  .summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .summary-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
-  .summary-card .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
-  .summary-card .value { font-size: 22px; font-weight: 700; }
-  .summary-card .sub-text { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-
-  /* Table responsive */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 300px; }
-  th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-  td { padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  td.text-right { text-align: right; }
-
-  .status-row { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; flex-wrap: wrap; }
-  .status-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; background: #9aa0aa; }
-  .status-text { font-size: 18px; font-weight: 700; }
-  .status-note { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
-
-  .chart-container { position: relative; height: 180px; width: 100%; touch-action: none; }
-  .chart-container.tall { height: 220px; }
-
-  /* Scrollable table container */
-  .scroll-table { max-height: 300px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
-  @media (max-width: 480px) {
-    nav.tabs a { font-size: 10px; padding: 4px 8px; }
-    .panel { padding: 12px; }
-    .summary-card .value { font-size: 18px; }
-    .status-text { font-size: 16px; }
-    .chart-container { height: 140px; }
-    .chart-container.tall { height: 180px; }
   }
 </style>
 </head>
@@ -138,7 +82,7 @@
   </div>
 </div>
 
-<!-- ================= APP SHELL ================= -->
+<!-- ================= APP SHELL (shown after login) ================= -->
 <div id="appShell">
   <nav class="tabs">
     <div class="tab-links">
@@ -155,53 +99,42 @@
     </div>
   </nav>
 
-  <div class="controls">
-    <div class="control">
-      <label>Machine</label>
-      <select id="machineSelect"><option value="">Loading…</option></select>
-    </div>
-    <div class="control" style="flex:0 1 auto;min-width:100px;">
-      <label>View</label>
-      <select id="viewDaysSelect" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;">
-        <option value="1">Today</option>
-        <option value="3" selected>3 Days</option>
-        <option value="7">7 Days</option>
-        <option value="14">14 Days</option>
-        <option value="30">30 Days</option>
-      </select>
+  <div class="controls" style="display:flex;gap:14px;align-items:flex-end;padding:16px 24px;border-bottom:1px solid var(--line);">
+    <div class="control" style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Machine</label>
+      <select id="machineSelect" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;min-width:160px;"><option value="">Loading…</option></select>
     </div>
   </div>
 
   <main>
-    <!-- OVERVIEW TAB -->
     <div class="tab-panel active" id="tab-overview">
-      <div class="panel">
-        <h2>Production — All Stations</h2>
-        <div class="sub">Side-by-side comparison, updated every 10 seconds.</div>
-        <div class="table-wrap">
-          <table>
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Production — All Stations</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Side-by-side comparison, no need to switch the machine selector.</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
-              <th>Station</th>
-              <th>Status</th>
-              <th class="text-right">Today</th>
-              <th class="text-right">Yesterday</th>
-              <th class="text-right">Speed (/min)</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Station</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Status</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Today</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Yesterday</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Speed (/min)</th>
             </tr></thead>
             <tbody id="overviewProductionTableBody"></tbody>
           </table>
         </div>
       </div>
 
-      <div class="panel">
-        <h2>Staffs — All Stations</h2>
-        <div class="sub">Who's currently punched in, and today's attributed production.</div>
-        <div class="table-wrap">
-          <table>
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Staffs — All Stations</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Who's currently punched in, and today's attributed production, per station.</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
-              <th>Station</th>
-              <th>Currently Punched In</th>
-              <th class="text-right">Today's Attributed</th>
-              <th class="text-right">Today's Unassigned</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Station</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Currently Punched In</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Today's Attributed</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Today's Unassigned</th>
             </tr></thead>
             <tbody id="overviewStaffsTableBody"></tbody>
           </table>
@@ -209,140 +142,126 @@
       </div>
     </div>
 
-    <!-- PRODUCTION TAB -->
     <div class="tab-panel" id="tab-production">
-      <div class="status-row" id="machineStatusCard">
-        <div class="status-dot" id="statusDot"></div>
+      <div class="machine-status" id="machineStatusCard" style="display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+        <div class="big-dot" id="statusDot" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;background:#9aa0aa;"></div>
         <div>
-          <div class="status-text" id="statusText">—</div>
-          <div class="status-note" id="statusNote">—</div>
+          <div id="statusText" style="font-size:22px;font-weight:700;">—</div>
+          <div id="statusNote" style="color:var(--text-dim);font-size:13px;margin-top:2px;">—</div>
         </div>
       </div>
 
-      <div class="summary-row" id="summaryRow"></div>
+      <div class="summary-row" id="summaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
-      <div class="two-col">
-        <div class="panel">
-          <h2>Last <span id="viewDaysLabel">3</span> Days</h2>
-          <div class="sub">Daily production total (7AM-7AM shift).</div>
-          <div class="chart-container"><canvas id="threeDayChart"></canvas></div>
+      <div class="two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
+        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+          <h2 style="font-size:15px;margin:0 0 4px;">Last 3 Days</h2>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Daily production total.</div>
+          <div style="position:relative;height:240px;touch-action:pan-y;"><canvas id="threeDayChart"></canvas></div>
         </div>
-        <div class="panel">
-          <h2>Speed Trend (Today)</h2>
-          <div class="sub">Units per minute, 10-min rolling average.</div>
-          <div class="chart-container"><canvas id="speedChart"></canvas></div>
+        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+          <h2 style="font-size:15px;margin:0 0 4px;">Speed Trend (Today)</h2>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Units per minute, hourly average.</div>
+          <div style="position:relative;height:240px;touch-action:pan-y;"><canvas id="speedChart"></canvas></div>
         </div>
       </div>
     </div>
-
-    <!-- STAFFS TAB -->
     <div class="tab-panel" id="tab-staffs">
-      <div class="summary-row" id="staffsSummaryRow"></div>
+      <div class="summary-row" id="staffsSummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
-      <div class="panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
           <div>
-            <h2 style="margin:0;">Daily Production by Operator</h2>
-            <div class="sub" style="margin:0;">Each bar segment is one operator's production for that day.</div>
+            <h2 style="font-size:15px;margin:0 0 4px;">Daily Production by Operator</h2>
+            <div style="color:var(--text-dim);font-size:12px;">Each bar segment is one operator's punched-in production that day.</div>
           </div>
-          <select id="staffsRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;">
-            <option value="3">3 days</option>
-            <option value="7">7 days</option>
-            <option value="30" selected>30 days</option>
-            <option value="90">90 days</option>
+          <select id="staffsRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
           </select>
         </div>
-        <div class="chart-container" style="height:200px;"><canvas id="staffsDailyChart"></canvas></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          <button id="staffsZoomIn" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">Zoom In</button>
-          <button id="staffsZoomOut" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">Zoom Out</button>
-          <button id="staffsResetZoom" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">Reset</button>
-          <button id="staffsPanLeft" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">◀</button>
-          <button id="staffsPanRight" style="background:var(--panel);border:1px solid var(--line);color:var(--text);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">▶</button>
-        </div>
+        <div style="position:relative;height:260px;touch-action:pan-y;"><canvas id="staffsDailyChart"></canvas></div>
       </div>
 
-      <div class="panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
-          <h2 style="margin:0;">Operator Totals</h2>
-          <button id="staffsDownloadBtn" style="background:transparent;border:1px solid var(--line);color:var(--text);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;">Download Report</button>
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <h2 style="font-size:15px;margin:0;">Operator Totals</h2>
+          <button id="staffsDownloadBtn" style="background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">Download Report (.xlsx)</button>
         </div>
-        <div class="scroll-table">
-          <table>
+        <div style="max-height:360px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
-              <th>Operator</th>
-              <th class="text-right">Total Production</th>
-              <th class="text-right">Sessions</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Operator</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Total Production</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Sessions</th>
             </tr></thead>
             <tbody id="staffsOperatorTableBody"></tbody>
           </table>
         </div>
       </div>
 
-      <div class="panel">
-        <h2 style="margin:0 0 12px;">Day-wise Breakdown</h2>
-        <div class="scroll-table">
-          <table>
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <h2 style="font-size:15px;margin:0 0 16px;">Day-wise Breakdown</h2>
+        <div style="max-height:360px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
-              <th>Date</th>
-              <th>Operator</th>
-              <th class="text-right">Production</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Date</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Operator</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Production</th>
             </tr></thead>
             <tbody id="staffsDailyTableBody"></tbody>
           </table>
         </div>
       </div>
     </div>
-
-    <!-- DOWNTIME TAB -->
     <div class="tab-panel" id="tab-downtime">
-      <div class="status-row" id="downtimeStatusCard">
-        <div class="status-dot" id="downtimeStatusDot"></div>
+      <div class="status-card" id="downtimeStatusCard" style="display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+        <div class="big-dot" id="downtimeStatusDot" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;background:#9aa0aa;"></div>
         <div>
-          <div class="status-text" id="downtimeStatusText">—</div>
-          <div class="status-note" id="downtimeStatusNote">—</div>
+          <div id="downtimeStatusText" style="font-size:22px;font-weight:700;">—</div>
+          <div id="downtimeStatusNote" style="color:var(--text-dim);font-size:13px;margin-top:2px;">—</div>
         </div>
       </div>
 
-      <div class="summary-row" id="downtimeSummaryRow"></div>
+      <div class="summary-row" id="downtimeSummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
-      <div class="two-col">
-        <div class="panel">
+      <div class="two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px;">
+        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
-            <h2 style="margin:0;">Breakdown by Reason</h2>
-            <select id="downtimeRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:4px 8px;border-radius:8px;font-size:11px;">
-              <option value="7">7 days</option>
-              <option value="30" selected>30 days</option>
-              <option value="90">90 days</option>
+            <h2 style="font-size:15px;margin:0;">Breakdown by Reason</h2>
+            <select id="downtimeRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
             </select>
           </div>
-          <div class="sub" style="margin-bottom:12px;">Total minutes lost per reason.</div>
-          <div class="chart-container" style="height:200px;"><canvas id="downtimeReasonChart"></canvas></div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Total minutes lost per reason.</div>
+          <div style="position:relative;height:260px;"><canvas id="downtimeReasonChart"></canvas></div>
         </div>
-        <div class="panel">
-          <h2 style="margin:0 0 4px;">Daily Downtime Trend</h2>
-          <div class="sub" style="margin-bottom:12px;">Minutes per day, stacked by reason.</div>
-          <div class="chart-container" style="height:200px;"><canvas id="downtimeTrendChart"></canvas></div>
+        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+          <h2 style="font-size:15px;margin:0 0 4px;">Daily Downtime Trend</h2>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Minutes per day, stacked by reason.</div>
+          <div style="position:relative;height:260px;touch-action:pan-y;"><canvas id="downtimeTrendChart"></canvas></div>
         </div>
       </div>
 
-      <div class="panel">
-        <h2 style="margin:0 0 12px;">Downtime Log</h2>
-        <div class="scroll-table">
-          <table>
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <h2 style="font-size:15px;margin:0 0 16px;">Downtime Log</h2>
+        <div style="max-height:360px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
-              <th>Date</th>
-              <th>Reason</th>
-              <th class="text-right">Duration (min)</th>
-              <th>Reported By</th>
-              <th>Resolved By</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Date</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Reason</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Duration (min)</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Reported By</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Resolved By</th>
             </tr></thead>
             <tbody id="downtimeLogTableBody"></tbody>
           </table>
         </div>
       </div>
     </div>
-
     <div class="tab-panel" id="tab-quality">
       <div class="placeholder-note">Quality tab — built in a later step.</div>
     </div>
@@ -356,7 +275,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js';
 import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js';
-import zoomPlugin from 'https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAY_kKOZ8oExdu7WvW6IODW9IinS31lTlo",
@@ -371,7 +289,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
-Chart.register(zoomPlugin);
 
 const loginScreen = document.getElementById('loginScreen');
 const appShell = document.getElementById('appShell');
@@ -380,7 +297,9 @@ const loginErr = document.getElementById('loginErr');
 const userEmailLabel = document.getElementById('userEmailLabel');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// ----- Auth State -----
+// Gate: only a real (non-anonymous) signed-in user sees the dashboard.
+// This mirrors the database rules - the rules are the actual security
+// boundary, this is just the matching UI behavior.
 onAuthStateChanged(auth, (user) => {
   if (user && user.providerData.length > 0) {
     loginScreen.style.display = 'none';
@@ -396,11 +315,13 @@ loginBtn.addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   loginErr.classList.remove('show');
+
   if (!email || !password) {
     loginErr.textContent = 'Enter your email and password.';
     loginErr.classList.add('show');
     return;
   }
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
@@ -425,65 +346,28 @@ document.querySelectorAll('nav.tabs a[data-tab]').forEach(link => {
   });
 });
 
-// ---- Firebase Refs ----
+/* =========================================================
+   PRODUCTION TAB
+   Ported from production.html. Uses the shared machine
+   selector above the tabs. Status/speed are computed from
+   existing Sensor events + Machines heartbeat - no firmware
+   changes needed.
+   ========================================================= */
 import { ref as dbRef, onValue as dbOnValue, off as dbOff } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
 
 const OFFLINE_AFTER_SEC = 120;
 const IDLE_AFTER_SEC = 300;
-const SPEED_WINDOW_SEC = 600; // 10 min window for speed
+const SPEED_WINDOW_SEC = 120; // was 600 (10 min) - too slow to reflect real changes; 2 min balances responsiveness vs noise
 
 const machineSelect = document.getElementById('machineSelect');
-const viewDaysSelect = document.getElementById('viewDaysSelect');
 let currentMachine = null;
-let previousMachine = null;
+let previousMachine = null; // tracked so we can detach that machine's listeners on switch
 let currentEvents = {};
 let lastSeen = null;
 let threeDayChart = null;
 let speedChart = null;
 let tickTimer = null;
-let overviewSubscribed = new Set();
-let overviewData = {};
-let operatorNames = {};
-let currentSessions = {};
-let staffsChart = null;
-let lastAllocation = null;
-let downtimeReasonChart = null;
-let downtimeTrendChart = null;
-let currentDowntimeActive = null;
-let currentDowntimeHistory = {};
-let rawDowntimeSnapshot = {};
-let downtimeRootSubscribed = false;
 
-// Shift: 7 AM to 7 AM next day
-function getShiftDate(ts) {
-  const d = new Date(ts * 1000);
-  const hour = d.getHours();
-  // If before 7 AM, it belongs to previous day's shift
-  if (hour < 7) {
-    d.setDate(d.getDate() - 1);
-  }
-  return d.toISOString().slice(0, 10);
-}
-
-function getShiftDateStr(ts) {
-  return getShiftDate(ts);
-}
-
-function getShiftToday() {
-  return getShiftDate(Math.floor(Date.now() / 1000));
-}
-
-function getShiftYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  // If current time is before 7 AM, yesterday's shift is 2 days ago
-  if (d.getHours() < 7) {
-    d.setDate(d.getDate() - 1);
-  }
-  return d.toISOString().slice(0, 10);
-}
-
-// ----- Load Machine List -----
 function loadMachineList() {
   dbOnValue(dbRef(db, 'Machines'), (snap) => {
     const data = snap.val() || {};
@@ -507,8 +391,18 @@ function loadMachineList() {
   });
 }
 
-// ----- Machine Subscription with proper cleanup -----
+machineSelect.addEventListener('change', () => {
+  currentMachine = machineSelect.value;
+  if (currentMachine) subscribeToMachine(currentMachine);
+});
+
 function subscribeToMachine(machineId) {
+  // Detach every listener tied to the PREVIOUSLY selected machine first.
+  // Without this, switching machines leaves old listeners running - and if
+  // that old machine's data ever changes (including being deleted), it can
+  // fire again and overwrite the new machine's data in these shared
+  // variables. This is what caused Staffs to show everything as
+  // "Unassigned" after switching away from the old M01 entry.
   if (previousMachine && previousMachine !== machineId) {
     dbOff(dbRef(db, `Machines/${previousMachine}/lastSeen`));
     dbOff(dbRef(db, `Sensor/${previousMachine}/events`));
@@ -520,64 +414,34 @@ function subscribeToMachine(machineId) {
   dbOnValue(dbRef(db, `Machines/${machineId}/lastSeen`), (snap) => {
     lastSeen = snap.val();
     renderStatus();
-    renderOverview();
   });
-  
   dbOnValue(dbRef(db, `Sensor/${machineId}/events`), (snap) => {
     currentEvents = snap.val() || {};
     renderProductionAll();
-    renderOverview();
   });
-  
-  dbOnValue(dbRef(db, `Sessions/${machineId}`), (snap) => {
-    currentSessions = snap.val() || {};
-    renderStaffsAll();
-    renderOverview();
-  });
-
-  dbOnValue(dbRef(db, `DowntimeActive/${machineId}`), (snap) => {
-    currentDowntimeActive = snap.val();
-    renderDowntimeStatus();
-  });
-
-  if (!downtimeRootSubscribed) {
-    downtimeRootSubscribed = true;
-    dbOnValue(dbRef(db, 'Downtime'), (snap) => {
-      rawDowntimeSnapshot = snap.val() || {};
-      recomputeDowntimeHistoryForCurrentMachine();
-    });
-  } else {
-    recomputeDowntimeHistoryForCurrentMachine();
-  }
-
   if (tickTimer) clearInterval(tickTimer);
-  tickTimer = setInterval(() => { 
-    renderStatus(); 
-    renderSummary(); 
-    renderOverview();
-  }, 10000); // Update every 10 seconds for faster response
+  tickTimer = setInterval(() => { renderStatus(); renderSummary(); }, 5000); // was 15000 - faster refresh for a more live feel
 }
 
-machineSelect.addEventListener('change', () => {
-  currentMachine = machineSelect.value;
-  if (currentMachine) subscribeToMachine(currentMachine);
-});
-
-viewDaysSelect.addEventListener('change', () => {
-  renderThreeDayChart();
-  renderSpeedChart();
-});
-
-// ----- Event Helpers -----
 function eventList() {
   return Object.values(currentEvents).filter(e => e && typeof e.timestamp === 'number');
 }
-
-function sumForShift(events, shiftDate) {
-  return events.filter(e => getShiftDate(e.timestamp) === shiftDate).reduce((a, e) => a + e.count, 0);
+// Shift-based "day" boundary: your factory's shift runs 7am to next 7am,
+// not calendar midnight to midnight. So "today" and "yesterday" mean
+// "this shift" and "the previous shift" - an event at 2am counts toward
+// the PREVIOUS day's shift, not the calendar day that just started.
+// Subtracting 7 hours before taking the date achieves this: anything from
+// 7:00am onward keeps its calendar date; anything before 7:00am rolls back
+// to the previous date.
+const SHIFT_START_HOUR = 7;
+function dateKeyFor(ts) {
+  const shifted = new Date((ts - SHIFT_START_HOUR * 3600) * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
+function sumForDate(events, dateKey) {
+  return events.filter(e => dateKeyFor(e.timestamp) === dateKey).reduce((a, e) => a + e.count, 0);
 }
 
-// ----- Production Tab -----
 function renderProductionAll() {
   renderStatus();
   renderSummary();
@@ -592,14 +456,23 @@ function renderStatus() {
   const note = document.getElementById('statusNote');
   if (!dot) return;
 
-  if (lastSeen === null || (nowSec - lastSeen) > OFFLINE_AFTER_SEC) {
-    dot.style.background = 'var(--text-dim)';
-    text.textContent = 'Offline';
-    note.textContent = lastSeen ? `No signal for ${Math.round((nowSec - lastSeen) / 60)} min` : 'No signal received yet';
-    return;
-  }
   const events = eventList();
   const lastEventTs = events.length ? Math.max(...events.map(e => e.timestamp)) : null;
+
+  // BUG FIX: previously this checked ONLY the heartbeat (lastSeen) to decide
+  // Offline, before ever looking at events - so a machine that was actively
+  // producing (fresh events) but had a merely-stale heartbeat (heartbeat only
+  // updates every 30s on the device, plus normal network jitter) would show
+  // as "Offline" for up to OFFLINE_AFTER_SEC even while clearly running.
+  // Now: only actually offline if BOTH signals are stale.
+  const mostRecentSignal = Math.max(lastSeen || 0, lastEventTs || 0);
+  if (mostRecentSignal === 0 || (nowSec - mostRecentSignal) > OFFLINE_AFTER_SEC) {
+    dot.style.background = 'var(--text-dim)';
+    text.textContent = 'Offline';
+    note.textContent = mostRecentSignal ? `No signal for ${Math.round((nowSec - mostRecentSignal) / 60)} min` : 'No signal received yet';
+    return;
+  }
+
   const secSinceLastEvent = lastEventTs ? nowSec - lastEventTs : Infinity;
   if (secSinceLastEvent <= IDLE_AFTER_SEC) {
     dot.style.background = 'var(--ok)';
@@ -617,34 +490,35 @@ function renderSummary() {
   if (!summaryRow) return;
   const events = eventList();
   const nowSec = Math.floor(Date.now() / 1000);
-  const todayShift = getShiftToday();
-  const yesterdayShift = getShiftYesterday();
-  const monthPrefix = todayShift.slice(0, 7);
+  const today = dateKeyFor(nowSec); // shift-aware: 7am-7am, not calendar midnight
+  const yesterday = dateKeyFor(nowSec - 86400);
+  const monthPrefix = today.slice(0, 7);
 
-  const todayTotal = sumForShift(events, todayShift);
-  const yesterdayTotal = sumForShift(events, yesterdayShift);
-  const monthTotal = events.filter(e => getShiftDate(e.timestamp).startsWith(monthPrefix)).reduce((a, e) => a + e.count, 0);
+  const todayTotal = sumForDate(events, today);
+  const yesterdayTotal = sumForDate(events, yesterday);
+  const monthTotal = events.filter(e => dateKeyFor(e.timestamp).startsWith(monthPrefix)).reduce((a, e) => a + e.count, 0);
 
   const speedWindowEvents = events.filter(e => nowSec - e.timestamp <= SPEED_WINDOW_SEC);
   const speedWindowTotal = speedWindowEvents.reduce((a, e) => a + e.count, 0);
   const currentSpeed = (speedWindowTotal / (SPEED_WINDOW_SEC / 60)).toFixed(2);
 
   summaryRow.innerHTML = `
-    <div class="summary-card">
-      <div class="label">Today's Production</div>
-      <div class="value">${todayTotal.toFixed(1)}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Today's Production</div>
+      <div style="font-size:26px;font-weight:700;">${todayTotal.toFixed(1)}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Yesterday's Production</div>
-      <div class="value">${yesterdayTotal.toFixed(1)}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Yesterday's Production</div>
+      <div style="font-size:26px;font-weight:700;">${yesterdayTotal.toFixed(1)}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">This Month</div>
-      <div class="value">${monthTotal.toFixed(1)}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">This Month</div>
+      <div style="font-size:26px;font-weight:700;">${monthTotal.toFixed(1)}</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${events.length > 3000 ? 'Large history - may take a moment to load' : ''}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Current Speed</div>
-      <div class="value">${currentSpeed}<span style="font-size:13px;color:var(--text-dim)"> /min</span></div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Current Speed</div>
+      <div style="font-size:26px;font-weight:700;">${currentSpeed}<span style="font-size:13px;color:var(--text-dim)"> /min</span></div>
     </div>
   `;
 }
@@ -653,20 +527,14 @@ function renderThreeDayChart() {
   const canvas = document.getElementById('threeDayChart');
   if (!canvas) return;
   const events = eventList();
-  const viewDays = parseInt(viewDaysSelect.value, 10);
-  document.getElementById('viewDaysLabel').textContent = viewDays;
-  
   const labels = [];
   const data = [];
-  for (let i = viewDays - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    // Adjust for shift (7AM-7AM)
-    const shiftDate = getShiftDate(Math.floor(d.getTime() / 1000));
-    labels.push(shiftDate);
-    data.push(sumForShift(events, shiftDate));
+  const DAYS_OF_HISTORY = 14; // more than 3 days loaded so there's room to pan backward
+  for (let i = DAYS_OF_HISTORY - 1; i >= 0; i--) {
+    const d = dateKeyFor(Math.floor(Date.now() / 1000) - i * 86400);
+    labels.push(d);
+    data.push(sumForDate(events, d));
   }
-  
   const ctx = canvas.getContext('2d');
   if (threeDayChart) threeDayChart.destroy();
   threeDayChart = new Chart(ctx, {
@@ -675,9 +543,20 @@ function renderThreeDayChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { min: 0, max: labels.length - 1, minRange: 3 } }
+        }
+      },
       scales: {
-        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa', maxRotation: 45, autoSkip: true } },
+        x: {
+          min: labels[Math.max(0, labels.length - 3)], // default view: latest 3 days, pan left for more
+          max: labels[labels.length - 1],
+          grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
+        },
         y: { beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
       }
     }
@@ -688,60 +567,76 @@ function renderSpeedChart() {
   const canvas = document.getElementById('speedChart');
   if (!canvas) return;
   const events = eventList();
-  const todayShift = getShiftToday();
-  const todaysEvents = events.filter(e => getShiftDate(e.timestamp) === todayShift);
-  
-  // Use 10-min rolling average for smoother speed
   const nowSec = Math.floor(Date.now() / 1000);
-  const hours = 24;
-  const points = [];
+  const DAYS_OF_HOURLY_HISTORY = 3; // 72 hourly buckets loaded so there's room to pan backward
+  const totalHours = DAYS_OF_HOURLY_HISTORY * 24;
+
+  // Build hourly buckets going back totalHours from now, each bucket keyed
+  // by its own real timestamp range (not just "hour of day") so multiple
+  // days don't collide into the same 24 slots.
+  const bucketStartSec = nowSec - (nowSec % 3600) - (totalHours - 1) * 3600;
+  const hourlyTotals = new Array(totalHours).fill(0);
   const labels = [];
-  
-  for (let h = 0; h < hours; h++) {
-    const hourStart = new Date();
-    hourStart.setHours(h, 0, 0, 0);
-    const hourEnd = new Date();
-    hourEnd.setHours(h, 59, 59, 999);
-    // Convert to timestamp seconds
-    const startSec = Math.floor(hourStart.getTime() / 1000);
-    const endSec = Math.floor(hourEnd.getTime() / 1000);
-    
-    const hourEvents = todaysEvents.filter(e => e.timestamp >= startSec && e.timestamp <= endSec);
-    const total = hourEvents.reduce((a, e) => a + e.count, 0);
-    // Speed per minute for that hour
-    points.push(parseFloat((total / 60).toFixed(2)));
-    labels.push(`${String(h).padStart(2, '0')}:00`);
+  for (let h = 0; h < totalHours; h++) {
+    const bucketTime = bucketStartSec + h * 3600;
+    const d = new Date(bucketTime * 1000);
+    labels.push(`${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:00`);
   }
-  
+  events.forEach(e => {
+    const idx = Math.floor((e.timestamp - bucketStartSec) / 3600);
+    if (idx >= 0 && idx < totalHours) hourlyTotals[idx] += e.count;
+  });
+  const speedByHour = hourlyTotals.map(total => parseFloat((total / 60).toFixed(2)));
+
   const ctx = canvas.getContext('2d');
   if (speedChart) speedChart.destroy();
   speedChart = new Chart(ctx, {
     type: 'line',
-    data: { 
-      labels, 
-      datasets: [{ 
-        label: 'Units/min', 
-        data: points, 
-        borderColor: '#f2a541', 
-        backgroundColor: 'rgba(242,165,65,0.15)', 
-        fill: true, 
-        tension: 0.3,
-        pointRadius: 2
-      }] 
-    },
+    data: { labels, datasets: [{ label: 'Units/min', data: speedByHour, borderColor: '#f2a541', backgroundColor: 'rgba(242,165,65,0.15)', fill: true, tension: 0.3 }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { min: 0, max: labels.length - 1, minRange: 6 } }
+        }
+      },
       scales: {
-        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 } },
+        x: {
+          min: labels[Math.max(0, labels.length - 24)], // default view: latest 24h, pan left for more
+          max: labels[labels.length - 1],
+          grid: { color: '#33383f' }, ticks: { color: '#9aa0aa', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+        },
         y: { beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
       }
     }
   });
 }
 
-// ----- Staffs Tab -----
+// Start loading machine data once a supervisor is logged in
+onAuthStateChanged(auth, (user) => {
+  if (user && user.providerData.length > 0) {
+    loadMachineList();
+    loadOperatorNames();
+  }
+});
+
+/* =========================================================
+   STAFFS TAB
+   Ported from dashboard.html. Allocates raw Sensor events to
+   operators by matching each event's timestamp against
+   Sessions[machineId] punchIn/punchOut windows. Events with
+   no matching session are shown separately as "Unassigned"
+   rather than dropped.
+   ========================================================= */
+let currentSessions = {};
+let operatorNames = {};
+let staffsChart = null;
+let lastAllocation = null;
+
 function loadOperatorNames() {
   dbOnValue(dbRef(db, 'Operators'), (snap) => {
     operatorNames = {};
@@ -749,6 +644,19 @@ function loadOperatorNames() {
     Object.keys(data).forEach(id => { operatorNames[id] = data[id].name || id; });
   });
 }
+
+// Hook into the same machine subscription used by Production,
+// adding a Sessions listener alongside it.
+const _originalSubscribeToMachine = subscribeToMachine;
+subscribeToMachine = function (machineId) {
+  _originalSubscribeToMachine(machineId);
+  dbOnValue(dbRef(db, `Sessions/${machineId}`), (snap) => {
+    currentSessions = snap.val() || {};
+    renderStaffsAll();
+  });
+};
+
+document.getElementById('staffsRangeSelect').addEventListener('change', () => renderStaffsAll());
 
 function colorFor(operatorId) {
   if (operatorId === 'Unassigned') return '#e2564f';
@@ -762,7 +670,7 @@ function allocate(eventsObj, sessionsObj, rangeDays) {
   const nowSec = Math.floor(Date.now() / 1000);
   const cutoffSec = nowSec - rangeDays * 86400;
 
-  const sessions = Object.entries(sessionsObj || {})
+  const sessions = Object.entries(sessionsObj)
     .map(([key, s]) => ({
       key, operatorId: s.operatorId,
       name: s.name || operatorNames[s.operatorId] || s.operatorId,
@@ -771,33 +679,28 @@ function allocate(eventsObj, sessionsObj, rangeDays) {
     .filter(s => s.punchIn >= cutoffSec)
     .sort((a, b) => a.punchIn - b.punchIn);
 
-  const events = Object.values(eventsObj || {}).filter(e => e.timestamp >= cutoffSec);
+  const events = Object.values(eventsObj).filter(e => e.timestamp >= cutoffSec);
   const operatorTotals = {};
   const dailyByOperator = {};
   let unassignedTotal = 0;
 
   events.forEach(ev => {
     const match = sessions.find(s => ev.timestamp >= s.punchIn && ev.timestamp <= s.punchOut);
-    const shiftDate = getShiftDate(ev.timestamp);
-    if (!dailyByOperator[shiftDate]) dailyByOperator[shiftDate] = {};
+    const dateKey = dateKeyFor(ev.timestamp);
+    if (!dailyByOperator[dateKey]) dailyByOperator[dateKey] = {};
     if (match) {
       if (!operatorTotals[match.operatorId]) operatorTotals[match.operatorId] = { name: match.name, total: 0, sessionKeys: new Set() };
       operatorTotals[match.operatorId].total += ev.count;
       operatorTotals[match.operatorId].sessionKeys.add(match.key);
-      dailyByOperator[shiftDate][match.operatorId] = (dailyByOperator[shiftDate][match.operatorId] || 0) + ev.count;
+      dailyByOperator[dateKey][match.operatorId] = (dailyByOperator[dateKey][match.operatorId] || 0) + ev.count;
     } else {
       unassignedTotal += ev.count;
-      dailyByOperator[shiftDate]['Unassigned'] = (dailyByOperator[shiftDate]['Unassigned'] || 0) + ev.count;
+      dailyByOperator[dateKey]['Unassigned'] = (dailyByOperator[dateKey]['Unassigned'] || 0) + ev.count;
     }
   });
 
   return { operatorTotals, dailyByOperator, unassignedTotal, totalEvents: events.length, sessionCount: sessions.length };
 }
-
-document.getElementById('staffsRangeSelect').addEventListener('change', () => renderStaffsAll());
-
-let staffsZoomLevel = 1;
-let staffsPanOffset = 0;
 
 function renderStaffsAll() {
   if (!currentMachine) return;
@@ -807,27 +710,27 @@ function renderStaffsAll() {
   renderStaffsSummary(result);
   renderStaffsOperatorTable(result);
   renderStaffsDailyTable(result);
-  renderStaffsChart(result, rangeDays);
+  renderStaffsChart(result);
 }
 
 function renderStaffsSummary(result) {
   const totalProduction = Object.values(result.operatorTotals).reduce((a, o) => a + o.total, 0) + result.unassignedTotal;
   document.getElementById('staffsSummaryRow').innerHTML = `
-    <div class="summary-card">
-      <div class="label">Total Production</div>
-      <div class="value">${totalProduction.toFixed(1)}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Production</div>
+      <div style="font-size:26px;font-weight:700;">${totalProduction.toFixed(1)}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Active Operators</div>
-      <div class="value">${Object.keys(result.operatorTotals).length}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Active Operators</div>
+      <div style="font-size:26px;font-weight:700;">${Object.keys(result.operatorTotals).length}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Punch Sessions</div>
-      <div class="value">${result.sessionCount}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Punch Sessions</div>
+      <div style="font-size:26px;font-weight:700;">${result.sessionCount}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Unassigned</div>
-      <div class="value" style="color:var(--err);">${result.unassignedTotal.toFixed(1)}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Unassigned</div>
+      <div style="font-size:26px;font-weight:700;color:var(--err);">${result.unassignedTotal.toFixed(1)}</div>
     </div>
   `;
 }
@@ -841,15 +744,15 @@ function renderStaffsOperatorTable(result) {
   }
   body.innerHTML = entries.map(([id, o]) => `
     <tr>
-      <td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:${colorFor(id)};display:inline-block;"></span>${o.name}</span></td>
-      <td class="text-right">${o.total.toFixed(1)}</td>
-      <td class="text-right">${o.sessionKeys.size}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:${colorFor(id)};display:inline-block;"></span>${o.name}</span></td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${o.total.toFixed(1)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${o.sessionKeys.size}</td>
     </tr>
   `).join('') + (result.unassignedTotal > 0 ? `
     <tr>
-      <td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:${colorFor('Unassigned')};display:inline-block;"></span>Unassigned (no punch record)</span></td>
-      <td class="text-right">${result.unassignedTotal.toFixed(1)}</td>
-      <td class="text-right">—</td>
+      <td style="padding:10px 12px;"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:${colorFor('Unassigned')};display:inline-block;"></span>Unassigned (no punch record)</span></td>
+      <td style="padding:10px 12px;text-align:right;">${result.unassignedTotal.toFixed(1)}</td>
+      <td style="padding:10px 12px;text-align:right;">—</td>
     </tr>
   ` : '');
 }
@@ -868,11 +771,11 @@ function renderStaffsDailyTable(result) {
     return;
   }
   body.innerHTML = rows.map(r => `
-    <tr><td>${r.date}</td><td>${r.name}</td><td class="text-right">${r.count.toFixed(1)}</td></tr>
+    <tr><td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td><td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.name}</td><td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.count.toFixed(1)}</td></tr>
   `).join('');
 }
 
-function renderStaffsChart(result, rangeDays) {
+function renderStaffsChart(result) {
   const dates = Object.keys(result.dailyByOperator).sort();
   const operatorIds = new Set();
   dates.forEach(d => Object.keys(result.dailyByOperator[d]).forEach(id => operatorIds.add(id)));
@@ -881,66 +784,34 @@ function renderStaffsChart(result, rangeDays) {
     data: dates.map(d => result.dailyByOperator[d][id] || 0),
     backgroundColor: colorFor(id)
   }));
-
   const ctx = document.getElementById('staffsDailyChart').getContext('2d');
   if (staffsChart) staffsChart.destroy();
-  
-  // Calculate visible range based on zoom/pan
-  const totalDays = dates.length;
-  const visibleDays = Math.max(3, Math.round(totalDays / staffsZoomLevel));
-  const minIndex = Math.max(0, Math.min(totalDays - visibleDays, staffsPanOffset));
-  const maxIndex = Math.min(totalDays, minIndex + visibleDays);
-  
   staffsChart = new Chart(ctx, {
     type: 'bar',
-    data: { 
-      labels: dates.slice(minIndex, maxIndex),
-      datasets: datasets.map(ds => ({
-        ...ds,
-        data: ds.data.slice(minIndex, maxIndex)
-      }))
-    },
+    data: { labels: dates, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { stacked: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa', maxRotation: 45, autoSkip: true } },
+        x: {
+          stacked: true,
+          min: dates[Math.max(0, dates.length - 3)], // default view: latest 3 days, pan left for the rest of the selected range
+          max: dates[dates.length - 1],
+          grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
+        },
         y: { stacked: true, beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
       },
-      plugins: { 
-        legend: { labels: { color: '#f2f0eb', boxWidth: 12, font: { size: 10 } } },
+      plugins: {
+        legend: { labels: { color: '#f2f0eb' } },
         zoom: {
           pan: { enabled: true, mode: 'x' },
-          zoom: { enabled: true, mode: 'x' }
+          zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { min: 0, max: Math.max(0, dates.length - 1), minRange: 3 } }
         }
       }
     }
   });
 }
-
-// Staffs chart controls
-document.getElementById('staffsZoomIn').addEventListener('click', () => {
-  staffsZoomLevel = Math.min(5, staffsZoomLevel * 1.5);
-  renderStaffsAll();
-});
-document.getElementById('staffsZoomOut').addEventListener('click', () => {
-  staffsZoomLevel = Math.max(1, staffsZoomLevel / 1.5);
-  renderStaffsAll();
-});
-document.getElementById('staffsResetZoom').addEventListener('click', () => {
-  staffsZoomLevel = 1;
-  staffsPanOffset = 0;
-  renderStaffsAll();
-});
-document.getElementById('staffsPanLeft').addEventListener('click', () => {
-  staffsPanOffset = Math.max(0, staffsPanOffset - 2);
-  renderStaffsAll();
-});
-document.getElementById('staffsPanRight').addEventListener('click', () => {
-  const dates = Object.keys(lastAllocation?.dailyByOperator || {}).sort();
-  staffsPanOffset = Math.min(dates.length - 3, staffsPanOffset + 2);
-  renderStaffsAll();
-});
 
 document.getElementById('staffsDownloadBtn').addEventListener('click', () => {
   if (!lastAllocation) return;
@@ -957,130 +828,24 @@ document.getElementById('staffsDownloadBtn').addEventListener('click', () => {
   XLSX.writeFile(workbook, `${currentMachine}_production_by_operator.xlsx`);
 });
 
-// ----- Overview Tab -----
-function subscribeOverview(machineIds) {
-  machineIds.forEach(id => {
-    if (overviewSubscribed.has(id)) return;
-    overviewSubscribed.add(id);
-    if (!overviewData[id]) overviewData[id] = { lastSeen: null, events: {}, sessions: {} };
-
-    dbOnValue(dbRef(db, `Machines/${id}/lastSeen`), (snap) => {
-      overviewData[id].lastSeen = snap.val();
-      renderOverview();
-    });
-    dbOnValue(dbRef(db, `Sensor/${id}/events`), (snap) => {
-      overviewData[id].events = snap.val() || {};
-      renderOverview();
-    });
-    dbOnValue(dbRef(db, `Sessions/${id}`), (snap) => {
-      overviewData[id].sessions = snap.val() || {};
-      renderOverview();
-    });
-  });
-}
-
-function computeStationStatus(lastSeenVal, eventsObj) {
-  const nowSec = Math.floor(Date.now() / 1000);
-  if (lastSeenVal === null || (nowSec - lastSeenVal) > OFFLINE_AFTER_SEC) {
-    return { label: 'Offline', color: 'var(--text-dim)' };
-  }
-  const events = Object.values(eventsObj).filter(e => e && typeof e.timestamp === 'number');
-  const lastEventTs = events.length ? Math.max(...events.map(e => e.timestamp)) : null;
-  const secSinceLastEvent = lastEventTs ? nowSec - lastEventTs : Infinity;
-  if (secSinceLastEvent <= IDLE_AFTER_SEC) return { label: 'Running', color: 'var(--ok)' };
-  return { label: 'Idle', color: 'var(--warn)' };
-}
-
-function renderOverview() {
-  renderOverviewProduction();
-  renderOverviewStaffs();
-}
-
-function renderOverviewProduction() {
-  const body = document.getElementById('overviewProductionTableBody');
-  if (!body) return;
-  const ids = Object.keys(overviewData).sort();
-  if (ids.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
-    return;
-  }
-  const nowSec = Math.floor(Date.now() / 1000);
-  const todayShift = getShiftToday();
-  const yesterdayShift = getShiftYesterday();
-
-  body.innerHTML = ids.map(id => {
-    const d = overviewData[id];
-    const events = Object.values(d.events).filter(e => e && typeof e.timestamp === 'number');
-    const todayTotal = events.filter(e => getShiftDate(e.timestamp) === todayShift).reduce((a, e) => a + e.count, 0);
-    const yesterdayTotal = events.filter(e => getShiftDate(e.timestamp) === yesterdayShift).reduce((a, e) => a + e.count, 0);
-    const speedWindowTotal = events.filter(e => nowSec - e.timestamp <= SPEED_WINDOW_SEC).reduce((a, e) => a + e.count, 0);
-    const speed = (speedWindowTotal / (SPEED_WINDOW_SEC / 60)).toFixed(2);
-    const status = computeStationStatus(d.lastSeen, d.events);
-
-    return `
-      <tr>
-        <td style="font-weight:700;">${id}</td>
-        <td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${status.color};display:inline-block;"></span>${status.label}</span></td>
-        <td class="text-right">${todayTotal.toFixed(1)}</td>
-        <td class="text-right">${yesterdayTotal.toFixed(1)}</td>
-        <td class="text-right">${speed}</td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function renderOverviewStaffs() {
-  const body = document.getElementById('overviewStaffsTableBody');
-  if (!body) return;
-  const ids = Object.keys(overviewData).sort();
-  if (ids.length === 0) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
-    return;
-  }
-  const todayShift = getShiftToday();
-
-  body.innerHTML = ids.map(id => {
-    const d = overviewData[id];
-    const result = allocateEventsToOperatorsLocal(d.events, d.sessions, 1);
-    const todayByOperator = result.dailyByOperator[todayShift] || {};
-    const todayAssigned = Object.entries(todayByOperator).filter(([k]) => k !== 'Unassigned').reduce((a, [, v]) => a + v, 0);
-    const todayUnassigned = todayByOperator['Unassigned'] || 0;
-
-    const activeSessionOpen = Object.values(d.sessions || {}).find(s => s.status === 'open');
-    const activeName = activeSessionOpen ? (activeSessionOpen.name || activeSessionOpen.operatorId) : '—';
-
-    return `
-      <tr>
-        <td style="font-weight:700;">${id}</td>
-        <td>${activeName}</td>
-        <td class="text-right">${todayAssigned.toFixed(1)}</td>
-        <td class="text-right" style="${todayUnassigned > 0 ? 'color:var(--err);' : ''}">${todayUnassigned.toFixed(1)}</td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function allocateEventsToOperatorsLocal(eventsObj, sessionsObj, rangeDays) {
-  const nowSec = Math.floor(Date.now() / 1000);
-  const cutoffSec = nowSec - rangeDays * 86400;
-  const sessions = Object.entries(sessionsObj || {})
-    .map(([key, s]) => ({ key, operatorId: s.operatorId, punchIn: s.punchIn, punchOut: s.punchOut || nowSec }))
-    .filter(s => s.punchIn >= cutoffSec);
-  const events = Object.values(eventsObj || {}).filter(e => e.timestamp >= cutoffSec);
-  const dailyByOperator = {};
-  events.forEach(ev => {
-    const match = sessions.find(s => ev.timestamp >= s.punchIn && ev.timestamp <= s.punchOut);
-    const shiftDate = getShiftDate(ev.timestamp);
-    if (!dailyByOperator[shiftDate]) dailyByOperator[shiftDate] = {};
-    const key = match ? match.operatorId : 'Unassigned';
-    dailyByOperator[shiftDate][key] = (dailyByOperator[shiftDate][key] || 0) + ev.count;
-  });
-  return { dailyByOperator };
-}
-
-// ----- Downtime Tab -----
+/* =========================================================
+   DOWNTIME TAB
+   Live status comes from DowntimeActive/{machine} (set by
+   report.html when someone reports a downtime, cleared when
+   resolved). Historical breakdown/trend/log comes from the
+   archived Downtime/{date}/{machine}/{pushId} records created
+   when a downtime is resolved.
+   ========================================================= */
 const REASON_LABELS = { noMaterial: 'No Material', moldDefective: 'Mold Defective', maintenance: 'Maintenance' };
 const REASON_COLORS = { noMaterial: '#e0b23a', moldDefective: '#e2564f', maintenance: '#9aa0aa' };
+
+let currentDowntimeActive = null;
+let currentDowntimeHistory = {}; // { date: { machineId: { pushId: record } } } for the selected machine only
+let downtimeReasonChart = null;
+let downtimeTrendChart = null;
+
+let downtimeRootSubscribed = false;
+let rawDowntimeSnapshot = {};
 
 function recomputeDowntimeHistoryForCurrentMachine() {
   const forThisMachine = {};
@@ -1090,6 +855,33 @@ function recomputeDowntimeHistoryForCurrentMachine() {
   currentDowntimeHistory = forThisMachine;
   renderDowntimeAll();
 }
+
+const _prevSubscribeToMachine = subscribeToMachine;
+subscribeToMachine = function (machineId) {
+  _prevSubscribeToMachine(machineId);
+
+  dbOnValue(dbRef(db, `DowntimeActive/${machineId}`), (snap) => {
+    currentDowntimeActive = snap.val();
+    renderDowntimeStatus();
+  });
+
+  // Subscribed once, not once per machine switch. Filters by whatever
+  // currentMachine IS at the moment data arrives, rather than the machineId
+  // this particular call started with - that stale-closure pattern is
+  // exactly what caused the earlier cross-machine data contamination bug.
+  if (!downtimeRootSubscribed) {
+    downtimeRootSubscribed = true;
+    dbOnValue(dbRef(db, 'Downtime'), (snap) => {
+      rawDowntimeSnapshot = snap.val() || {};
+      recomputeDowntimeHistoryForCurrentMachine();
+    });
+  } else {
+    // Root listener already attached from a previous machine - re-filter
+    // the cached snapshot for the newly selected machine immediately,
+    // rather than waiting for Downtime data to next change.
+    recomputeDowntimeHistoryForCurrentMachine();
+  }
+};
 
 document.getElementById('downtimeRangeSelect').addEventListener('change', () => renderDowntimeAll());
 
@@ -1144,21 +936,21 @@ function renderDowntimeSummary(records) {
   const avgPerDay = totalMinutes / days;
 
   document.getElementById('downtimeSummaryRow').innerHTML = `
-    <div class="summary-card">
-      <div class="label">Total Downtime</div>
-      <div class="value">${totalMinutes} min</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Downtime</div>
+      <div style="font-size:26px;font-weight:700;">${totalMinutes} min</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Most Common Reason</div>
-      <div class="value" style="font-size:18px;">${topReason ? REASON_LABELS[topReason[0]] || topReason[0] : '—'}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Most Common Reason</div>
+      <div style="font-size:20px;font-weight:700;">${topReason ? REASON_LABELS[topReason[0]] || topReason[0] : '—'}</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Avg per Day</div>
-      <div class="value">${avgPerDay.toFixed(1)} min</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Avg per Day</div>
+      <div style="font-size:26px;font-weight:700;">${avgPerDay.toFixed(1)} min</div>
     </div>
-    <div class="summary-card">
-      <div class="label">Incidents</div>
-      <div class="value">${records.length}</div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Incidents</div>
+      <div style="font-size:26px;font-weight:700;">${records.length}</div>
     </div>
   `;
 }
@@ -1177,11 +969,7 @@ function renderDowntimeReasonChart(records) {
   downtimeReasonChart = new Chart(ctx, {
     type: 'doughnut',
     data: { labels, datasets: [{ data, backgroundColor: colors }] },
-    options: { 
-      responsive: true, 
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: '#f2f0eb', boxWidth: 12, font: { size: 10 } } } } 
-    }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f2f0eb' } } } }
   });
 }
 
@@ -1205,10 +993,22 @@ function renderDowntimeTrendChart(records) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { stacked: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa', maxRotation: 45, autoSkip: true } },
+        x: {
+          stacked: true,
+          min: dates[Math.max(0, dates.length - 7)], // default view: latest week, pan for more
+          max: dates[dates.length - 1],
+          grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
+        },
         y: { stacked: true, beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
       },
-      plugins: { legend: { labels: { color: '#f2f0eb', boxWidth: 12, font: { size: 10 } } } }
+      plugins: {
+        legend: { labels: { color: '#f2f0eb' } },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { min: 0, max: Math.max(0, dates.length - 1), minRange: 3 } }
+        }
+      }
     }
   });
 }
@@ -1223,25 +1023,151 @@ function renderDowntimeLog(records) {
   const sorted = records.slice().sort((a, b) => (b.startTime || 0) - (a.startTime || 0));
   body.innerHTML = sorted.map(r => `
     <tr>
-      <td>${r.date}</td>
-      <td>${REASON_LABELS[r.reason] || r.reason}</td>
-      <td class="text-right">${r.durationMinutes || 0}</td>
-      <td>${r.startedBy || '—'}</td>
-      <td>${r.resolvedBy || '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${REASON_LABELS[r.reason] || r.reason}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.durationMinutes || 0}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.startedBy || '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.resolvedBy || '—'}</td>
     </tr>
   `).join('');
 }
 
-// ----- Initialize -----
-onAuthStateChanged(auth, (user) => {
-  if (user && user.providerData.length > 0) {
-    loadMachineList();
-    loadOperatorNames();
-  }
-});
+/* =========================================================
+   OVERVIEW TAB
+   Independent of the single-machine selector used by every
+   other tab - subscribes to all known stations at once so
+   they can be compared side by side without switching.
+   ========================================================= */
+let overviewData = {}; // { machineId: { lastSeen, events: {}, sessions: {} } }
+let overviewSubscribed = new Set();
 
-// Periodic refresh for overview
-setInterval(renderOverview, 10000);
+function subscribeOverview(machineIds) {
+  machineIds.forEach(id => {
+    if (overviewSubscribed.has(id)) return; // already listening, don't double-subscribe
+    overviewSubscribed.add(id);
+    if (!overviewData[id]) overviewData[id] = { lastSeen: null, events: {}, sessions: {} };
+
+    dbOnValue(dbRef(db, `Machines/${id}/lastSeen`), (snap) => {
+      overviewData[id].lastSeen = snap.val();
+      renderOverview();
+    });
+    dbOnValue(dbRef(db, `Sensor/${id}/events`), (snap) => {
+      overviewData[id].events = snap.val() || {};
+      renderOverview();
+    });
+    dbOnValue(dbRef(db, `Sessions/${id}`), (snap) => {
+      overviewData[id].sessions = snap.val() || {};
+      renderOverview();
+    });
+  });
+}
+
+function computeStationStatus(lastSeenVal, eventsObj) {
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (lastSeenVal === null || (nowSec - lastSeenVal) > OFFLINE_AFTER_SEC) {
+    return { label: 'Offline', color: 'var(--text-dim)' };
+  }
+  const events = Object.values(eventsObj).filter(e => e && typeof e.timestamp === 'number');
+  const lastEventTs = events.length ? Math.max(...events.map(e => e.timestamp)) : null;
+  const secSinceLastEvent = lastEventTs ? nowSec - lastEventTs : Infinity;
+  if (secSinceLastEvent <= IDLE_AFTER_SEC) return { label: 'Running', color: 'var(--ok)' };
+  return { label: 'Idle', color: 'var(--warn)' };
+}
+
+function renderOverview() {
+  renderOverviewProduction();
+  renderOverviewStaffs();
+}
+
+function renderOverviewProduction() {
+  const body = document.getElementById('overviewProductionTableBody');
+  if (!body) return;
+  const ids = Object.keys(overviewData).sort();
+  if (ids.length === 0) {
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
+    return;
+  }
+  const nowSec = Math.floor(Date.now() / 1000);
+  const today = dateKeyFor(nowSec); // shift-aware
+  const yesterday = dateKeyFor(nowSec - 86400);
+
+  body.innerHTML = ids.map(id => {
+    const d = overviewData[id];
+    const events = Object.values(d.events).filter(e => e && typeof e.timestamp === 'number');
+    const todayTotal = events.filter(e => dateKeyFor(e.timestamp) === today).reduce((a, e) => a + e.count, 0);
+    const yesterdayTotal = events.filter(e => dateKeyFor(e.timestamp) === yesterday).reduce((a, e) => a + e.count, 0);
+    const speedWindowTotal = events.filter(e => nowSec - e.timestamp <= SPEED_WINDOW_SEC).reduce((a, e) => a + e.count, 0);
+    const speed = (speedWindowTotal / (SPEED_WINDOW_SEC / 60)).toFixed(2);
+    const status = computeStationStatus(d.lastSeen, d.events);
+
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700;">${id}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${status.color};display:inline-block;"></span>${status.label}</span></td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${todayTotal.toFixed(1)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${yesterdayTotal.toFixed(1)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${speed}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderOverviewStaffs() {
+  const body = document.getElementById('overviewStaffsTableBody');
+  if (!body) return;
+  const ids = Object.keys(overviewData).sort();
+  if (ids.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
+    return;
+  }
+  const today = dateKeyFor(Math.floor(Date.now() / 1000)); // shift-aware
+
+  body.innerHTML = ids.map(id => {
+    const d = overviewData[id];
+    const result = allocateEventsToOperatorsLocal(d.events, d.sessions, 1); // 1-day range is enough for "today"
+    const todayByOperator = result.dailyByOperator[today] || {};
+    const todayAssigned = Object.entries(todayByOperator).filter(([k]) => k !== 'Unassigned').reduce((a, [, v]) => a + v, 0);
+    const todayUnassigned = todayByOperator['Unassigned'] || 0;
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const openSession = Object.values(d.sessions || {}).find(s => !s.punchOut || s.punchOut > nowSec - 5);
+    const activeSessionOpen = Object.values(d.sessions || {}).find(s => s.status === 'open');
+    const activeName = activeSessionOpen ? (activeSessionOpen.name || activeSessionOpen.operatorId) : '—';
+
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700;">${id}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${activeName}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${todayAssigned.toFixed(1)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;${todayUnassigned > 0 ? 'color:var(--err);' : ''}">${todayUnassigned.toFixed(1)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Lightweight local copy of the allocation logic so Overview doesn't depend
+// on the Staffs tab's operatorNames timing (uses raw operatorId as the name
+// fallback, same as the main allocate() function does when names aren't loaded yet).
+function allocateEventsToOperatorsLocal(eventsObj, sessionsObj, rangeDays) {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const cutoffSec = nowSec - rangeDays * 86400;
+  const sessions = Object.entries(sessionsObj || {})
+    .map(([key, s]) => ({ key, operatorId: s.operatorId, punchIn: s.punchIn, punchOut: s.punchOut || nowSec }))
+    .filter(s => s.punchIn >= cutoffSec);
+  const events = Object.values(eventsObj || {}).filter(e => e.timestamp >= cutoffSec);
+  const dailyByOperator = {};
+  events.forEach(ev => {
+    const match = sessions.find(s => ev.timestamp >= s.punchIn && ev.timestamp <= s.punchOut);
+    const dateKey = dateKeyFor(ev.timestamp);
+    if (!dailyByOperator[dateKey]) dailyByOperator[dateKey] = {};
+    const key = match ? match.operatorId : 'Unassigned';
+    dailyByOperator[dateKey][key] = (dailyByOperator[dateKey][key] || 0) + ev.count;
+  });
+  return { dailyByOperator };
+}
+
+// Refresh Overview periodically for status/speed drift even without new data
+setInterval(renderOverview, 15000);
 </script>
 </body>
 </html>

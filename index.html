@@ -343,8 +343,25 @@ document.querySelectorAll('nav.tabs a[data-tab]').forEach(link => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     link.classList.add('active');
     document.getElementById('tab-' + link.dataset.tab).classList.add('active');
+    resizeChartsForTab(link.dataset.tab);
   });
 });
+
+// Charts are only created once, the first time their data arrives - if that
+// happens while their tab is still display:none (e.g. Production/Staffs/
+// Downtime charts building in the background while Overview is the visible
+// tab on load), Chart.js lays them out at 0 width. They then sit invisible/
+// squashed until something nudges a resize, which can look like part of the
+// "flicker" the first time a tab is opened. Force a resize on the charts
+// belonging to whichever tab just became visible.
+function resizeChartsForTab(tab) {
+  const chartsByTab = {
+    production: [threeDayChart, speedChart],
+    staffs: [staffsChart],
+    downtime: [downtimeReasonChart, downtimeTrendChart]
+  };
+  (chartsByTab[tab] || []).forEach(c => { if (c) c.resize(); });
+}
 
 /* =========================================================
    PRODUCTION TAB
@@ -557,14 +574,31 @@ function renderThreeDayChart() {
     labels.push(d);
     data.push(sumForDate(events, d));
   }
+  // Update in place instead of destroy()+new Chart() whenever possible.
+  // destroy()+recreate rebuilds the chart from nothing every render, which
+  // (with Chart.js's default ~1000ms animation) makes every render visibly
+  // "pop in" from empty - on a page where events stream in continuously,
+  // that repeated pop-in is what reads as flicker. A 400ms debounce only
+  // reduces how OFTEN this happens; it doesn't stop each occurrence from
+  // being visible. Updating the existing instance's data avoids the
+  // teardown/rebuild and the animation entirely.
+  if (threeDayChart) {
+    threeDayChart.data.labels = labels;
+    threeDayChart.data.datasets[0].data = data;
+    threeDayChart.options.scales.x.min = labels[Math.max(0, labels.length - 3)];
+    threeDayChart.options.scales.x.max = labels[labels.length - 1];
+    threeDayChart.options.plugins.zoom.limits.x.max = labels.length - 1;
+    threeDayChart.update('none'); // 'none' = apply instantly, no transition animation
+    return;
+  }
   const ctx = canvas.getContext('2d');
-  if (threeDayChart) threeDayChart.destroy();
   threeDayChart = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets: [{ label: 'Production', data, backgroundColor: '#f2a541' }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false, // avoid a visible fade/grow-in on first render too
       plugins: {
         legend: { display: false },
         zoom: {
@@ -610,14 +644,23 @@ function renderSpeedChart() {
   });
   const speedByHour = hourlyTotals.map(total => parseFloat((total / 60).toFixed(2)));
 
+  if (speedChart) {
+    speedChart.data.labels = labels;
+    speedChart.data.datasets[0].data = speedByHour;
+    speedChart.options.scales.x.min = labels[Math.max(0, labels.length - 24)];
+    speedChart.options.scales.x.max = labels[labels.length - 1];
+    speedChart.options.plugins.zoom.limits.x.max = labels.length - 1;
+    speedChart.update('none');
+    return;
+  }
   const ctx = canvas.getContext('2d');
-  if (speedChart) speedChart.destroy();
   speedChart = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets: [{ label: 'Units/min', data: speedByHour, borderColor: '#f2a541', backgroundColor: 'rgba(242,165,65,0.15)', fill: true, tension: 0.3 }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       plugins: {
         legend: { display: false },
         zoom: {
@@ -814,14 +857,25 @@ function renderStaffsChart(result) {
     data: dates.map(d => result.dailyByOperator[d][id] || 0),
     backgroundColor: colorFor(id)
   }));
+  // Number of datasets (operators) can change between renders, so reassign
+  // the whole datasets array rather than mutating individual entries.
+  if (staffsChart) {
+    staffsChart.data.labels = dates;
+    staffsChart.data.datasets = datasets;
+    staffsChart.options.scales.x.min = dates[Math.max(0, dates.length - 3)];
+    staffsChart.options.scales.x.max = dates[dates.length - 1];
+    staffsChart.options.plugins.zoom.limits.x.max = Math.max(0, dates.length - 1);
+    staffsChart.update('none');
+    return;
+  }
   const ctx = document.getElementById('staffsDailyChart').getContext('2d');
-  if (staffsChart) staffsChart.destroy();
   staffsChart = new Chart(ctx, {
     type: 'bar',
     data: { labels: dates, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       scales: {
         x: {
           stacked: true,
@@ -994,12 +1048,18 @@ function renderDowntimeReasonChart(records) {
   const data = Object.values(byReason);
   const colors = Object.keys(byReason).map(r => REASON_COLORS[r] || '#9aa0aa');
 
+  if (downtimeReasonChart) {
+    downtimeReasonChart.data.labels = labels;
+    downtimeReasonChart.data.datasets[0].data = data;
+    downtimeReasonChart.data.datasets[0].backgroundColor = colors;
+    downtimeReasonChart.update('none');
+    return;
+  }
   const ctx = canvas.getContext('2d');
-  if (downtimeReasonChart) downtimeReasonChart.destroy();
   downtimeReasonChart = new Chart(ctx, {
     type: 'doughnut',
     data: { labels, datasets: [{ data, backgroundColor: colors }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f2f0eb' } } } }
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom', labels: { color: '#f2f0eb' } } } }
   });
 }
 
@@ -1014,14 +1074,25 @@ function renderDowntimeTrendChart(records) {
     backgroundColor: REASON_COLORS[reason]
   }));
 
+  // Reason set is fixed (noMaterial/moldDefective/maintenance) so dataset
+  // count never changes here, but reassign the whole array for consistency.
+  if (downtimeTrendChart) {
+    downtimeTrendChart.data.labels = dates;
+    downtimeTrendChart.data.datasets = datasets;
+    downtimeTrendChart.options.scales.x.min = dates[Math.max(0, dates.length - 7)];
+    downtimeTrendChart.options.scales.x.max = dates[dates.length - 1];
+    downtimeTrendChart.options.plugins.zoom.limits.x.max = Math.max(0, dates.length - 1);
+    downtimeTrendChart.update('none');
+    return;
+  }
   const ctx = canvas.getContext('2d');
-  if (downtimeTrendChart) downtimeTrendChart.destroy();
   downtimeTrendChart = new Chart(ctx, {
     type: 'bar',
     data: { labels: dates, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       scales: {
         x: {
           stacked: true,

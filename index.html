@@ -417,26 +417,48 @@ function subscribeToMachine(machineId) {
   });
   dbOnValue(dbRef(db, `Sensor/${machineId}/events`), (snap) => {
     currentEvents = snap.val() || {};
-    renderProductionAll();
+    debouncedRenderProductionAll();
   });
   if (tickTimer) clearInterval(tickTimer);
   tickTimer = setInterval(() => { renderStatus(); renderSummary(); }, 5000); // was 15000 - faster refresh for a more live feel
 }
 
+// A large event history (thousands of records) can arrive from Firebase as
+// several rapid successive snapshots rather than one clean update - each one
+// triggering a full chart destroy+rebuild looks like "blinking" on open.
+// This coalesces bursts of updates into a single render, 400ms after the
+// last one lands, so charts settle once cleanly instead of flickering
+// through partial states.
+let productionRenderDebounceTimer = null;
+function debouncedRenderProductionAll() {
+  if (productionRenderDebounceTimer) clearTimeout(productionRenderDebounceTimer);
+  productionRenderDebounceTimer = setTimeout(() => {
+    renderProductionAll();
+  }, 400);
+}
+
 function eventList() {
   return Object.values(currentEvents).filter(e => e && typeof e.timestamp === 'number');
 }
-// Shift-based "day" boundary: your factory's shift runs 7am to next 7am,
-// not calendar midnight to midnight. So "today" and "yesterday" mean
-// "this shift" and "the previous shift" - an event at 2am counts toward
-// the PREVIOUS day's shift, not the calendar day that just started.
-// Subtracting 7 hours before taking the date achieves this: anything from
-// 7:00am onward keeps its calendar date; anything before 7:00am rolls back
-// to the previous date.
+// Shift-based "day" boundary: your factory's shift runs 7am to next 7am
+// LOCAL TIME, not calendar midnight to midnight, and not UTC.
+//
+// BUG FIX: the previous version subtracted 7 hours and then called
+// toISOString(), but toISOString() ALWAYS returns UTC regardless of the
+// browser's timezone - so the boundary actually landed at UTC 07:00,
+// which is 12:30pm in India (UTC+5:30), not 7:00am. Nearly 5.5 hours of
+// real morning-shift production was being counted into the wrong day.
+//
+// Fixed by explicitly converting to the factory's local time (IST is
+// hardcoded here rather than relying on the viewing device's own
+// timezone setting, so the numbers are correct and consistent no matter
+// what device/timezone someone opens this dashboard from).
 const SHIFT_START_HOUR = 7;
+const FACTORY_UTC_OFFSET_MINUTES = 330; // IST = UTC+5:30. Change this if the factory is in a different timezone.
 function dateKeyFor(ts) {
-  const shifted = new Date((ts - SHIFT_START_HOUR * 3600) * 1000);
-  return shifted.toISOString().slice(0, 10);
+  const localTs = ts + FACTORY_UTC_OFFSET_MINUTES * 60; // shift the timestamp into factory-local time first
+  const shifted = new Date((localTs - SHIFT_START_HOUR * 3600) * 1000);
+  return shifted.toISOString().slice(0, 10); // now safe to use toISOString - the timestamp has already been localized
 }
 function sumForDate(events, dateKey) {
   return events.filter(e => dateKeyFor(e.timestamp) === dateKey).reduce((a, e) => a + e.count, 0);
@@ -652,9 +674,17 @@ subscribeToMachine = function (machineId) {
   _originalSubscribeToMachine(machineId);
   dbOnValue(dbRef(db, `Sessions/${machineId}`), (snap) => {
     currentSessions = snap.val() || {};
-    renderStaffsAll();
+    debouncedRenderStaffsAll();
   });
 };
+
+let staffsRenderDebounceTimer = null;
+function debouncedRenderStaffsAll() {
+  if (staffsRenderDebounceTimer) clearTimeout(staffsRenderDebounceTimer);
+  staffsRenderDebounceTimer = setTimeout(() => {
+    renderStaffsAll();
+  }, 400);
+}
 
 document.getElementById('staffsRangeSelect').addEventListener('change', () => renderStaffsAll());
 
@@ -1049,17 +1079,25 @@ function subscribeOverview(machineIds) {
 
     dbOnValue(dbRef(db, `Machines/${id}/lastSeen`), (snap) => {
       overviewData[id].lastSeen = snap.val();
-      renderOverview();
+      debouncedRenderOverview();
     });
     dbOnValue(dbRef(db, `Sensor/${id}/events`), (snap) => {
       overviewData[id].events = snap.val() || {};
-      renderOverview();
+      debouncedRenderOverview();
     });
     dbOnValue(dbRef(db, `Sessions/${id}`), (snap) => {
       overviewData[id].sessions = snap.val() || {};
-      renderOverview();
+      debouncedRenderOverview();
     });
   });
+}
+
+let overviewRenderDebounceTimer = null;
+function debouncedRenderOverview() {
+  if (overviewRenderDebounceTimer) clearTimeout(overviewRenderDebounceTimer);
+  overviewRenderDebounceTimer = setTimeout(() => {
+    renderOverview();
+  }, 400);
 }
 
 function computeStationStatus(lastSeenVal, eventsObj) {

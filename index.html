@@ -216,11 +216,12 @@
       </div>
     </div>
     <div class="tab-panel" id="tab-downtime">
-      <div class="status-card" id="downtimeStatusCard" style="display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
-        <div class="big-dot" id="downtimeStatusDot" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;background:#9aa0aa;"></div>
-        <div>
+      <div class="status-card" id="downtimeStatusCard" style="display:flex;align-items:flex-start;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+        <div class="big-dot" id="downtimeStatusDot" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;background:#9aa0aa;margin-top:4px;"></div>
+        <div style="flex:1;">
           <div id="downtimeStatusText" style="font-size:22px;font-weight:700;">—</div>
           <div id="downtimeStatusNote" style="color:var(--text-dim);font-size:13px;margin-top:2px;">—</div>
+          <div id="downtimeStatusDesc" style="display:none;color:var(--text);font-size:13px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);white-space:pre-wrap;"></div>
         </div>
       </div>
 
@@ -253,8 +254,12 @@
             <thead><tr>
               <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Date</th>
               <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Reason</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Issue Description</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Resolution Notes</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Start</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">End</th>
               <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Duration (min)</th>
-              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Reported By</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Started By</th>
               <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Resolved By</th>
             </tr></thead>
             <tbody id="downtimeLogTableBody"></tbody>
@@ -263,10 +268,97 @@
       </div>
     </div>
     <div class="tab-panel" id="tab-quality">
-      <div class="placeholder-note">Quality tab — built in a later step.</div>
+      <div class="summary-row" id="qualitySummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
+
+      <div class="two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px;">
+        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+            <h2 style="font-size:15px;margin:0;">Breakdown by Defect Type</h2>
+            <select id="qualityRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+          </div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Total rejected quantity per defect type.</div>
+          <div style="position:relative;height:260px;"><canvas id="qualityTypeChart"></canvas></div>
+        </div>
+        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+          <h2 style="font-size:15px;margin:0 0 4px;">Daily Defect Trend</h2>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Rejected quantity per day, stacked by defect type.</div>
+          <div style="position:relative;height:260px;touch-action:pan-y;"><canvas id="qualityTrendChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <h2 style="font-size:15px;margin:0;">Defect Log</h2>
+          <button id="qualityDownloadBtn" style="background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">Download Report (.xlsx)</button>
+        </div>
+        <div style="max-height:360px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Date</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Defect Type</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Qty</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Coil No.</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Drum No.</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Production Operator</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Reported By</th>
+            </tr></thead>
+            <tbody id="qualityLogTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
     <div class="tab-panel" id="tab-oee">
-      <div class="placeholder-note">OEE tab — built in a later step.</div>
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Daily Target &amp; Ideal Speed</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Manual entry, used to compute OEE and efficiency for this machine. Set once per day.</div>
+        <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Date</label>
+            <input type="date" id="oeeTargetDate" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Target (24 hr, units)</label>
+            <input type="number" id="oeeTargetQty" min="0" step="1" placeholder="e.g. 20000" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;width:160px;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Ideal Speed (units/min)</label>
+            <input type="number" id="oeeIdealSpeed" min="0" step="0.01" placeholder="e.g. 15.7" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;width:160px;">
+          </div>
+          <button id="oeeSaveTargetBtn" style="background:var(--amber);color:#1a1204;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;">Save</button>
+        </div>
+        <div id="oeeTargetMsg" style="margin-top:12px;font-size:13px;color:var(--ok);display:none;"></div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">OEE — Last 3 Days</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Availability × Performance × Quality. Limited to 3 days to keep this tab fast.</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Date</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Target</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Actual</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Efficiency</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Availability</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Performance</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Quality</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">OEE</th>
+            </tr></thead>
+            <tbody id="oeeTableBody"></tbody>
+          </table>
+        </div>
+        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Days without a saved target/ideal-speed show as “—” for Performance/OEE; Availability and Efficiency don't require a target.</div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">OEE Trend</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Last 3 days only.</div>
+        <div style="position:relative;height:240px;"><canvas id="oeeTrendChart"></canvas></div>
+      </div>
     </div>
   </main>
 </div>
@@ -358,7 +450,9 @@ function resizeChartsForTab(tab) {
   const chartsByTab = {
     production: [threeDayChart, speedChart],
     staffs: [staffsChart],
-    downtime: [downtimeReasonChart, downtimeTrendChart]
+    downtime: [downtimeReasonChart, downtimeTrendChart],
+    quality: [qualityTypeChart, qualityTrendChart],
+    oee: [oeeTrendChart]
   };
   (chartsByTab[tab] || []).forEach(c => { if (c) c.resize(); });
 }
@@ -370,7 +464,7 @@ function resizeChartsForTab(tab) {
    existing Sensor events + Machines heartbeat - no firmware
    changes needed.
    ========================================================= */
-import { ref as dbRef, onValue as dbOnValue, off as dbOff } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+import { ref as dbRef, onValue as dbOnValue, off as dbOff, set as dbSet } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
 
 const OFFLINE_AFTER_SEC = 120;
 const IDLE_AFTER_SEC = 300;
@@ -973,17 +1067,29 @@ function renderDowntimeStatus() {
   const dot = document.getElementById('downtimeStatusDot');
   const text = document.getElementById('downtimeStatusText');
   const note = document.getElementById('downtimeStatusNote');
+  const descBox = document.getElementById('downtimeStatusDesc');
   if (!dot) return;
 
   if (currentDowntimeActive && currentDowntimeActive.status === 'open') {
     dot.style.background = 'var(--err)';
     text.textContent = 'Down — ' + (REASON_LABELS[currentDowntimeActive.reason] || currentDowntimeActive.reason);
     const since = currentDowntimeActive.startTime ? new Date(currentDowntimeActive.startTime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    note.textContent = `Reported by ${currentDowntimeActive.startedBy || 'unknown'}${since ? ' at ' + since : ''}`;
+    const startedName = currentDowntimeActive.startedByName || currentDowntimeActive.startedBy || 'unknown';
+    const startedId = currentDowntimeActive.startedBy || '';
+    note.textContent = `Reported by ${startedName}${startedId && startedId !== startedName ? ' (' + startedId + ')' : ''}${since ? ' at ' + since : ''}`;
+    if (descBox) {
+      if (currentDowntimeActive.description && currentDowntimeActive.description.trim()) {
+        descBox.textContent = currentDowntimeActive.description;
+        descBox.style.display = 'block';
+      } else {
+        descBox.style.display = 'none';
+      }
+    }
   } else {
     dot.style.background = 'var(--ok)';
     text.textContent = 'Running';
     note.textContent = 'No active downtime reported.';
+    if (descBox) descBox.style.display = 'none';
   }
 }
 
@@ -1114,11 +1220,26 @@ function renderDowntimeTrendChart(records) {
   });
 }
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function fmtPersonNameId(name, id) {
+  const n = name || id || '—';
+  if (!n || n === '—') return '—';
+  return id && id !== n ? `${escapeHtml(n)} <span style="color:var(--text-dim);">(${escapeHtml(id)})</span>` : escapeHtml(n);
+}
+
+function fmtClock(ts) {
+  return ts ? new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+}
+
 function renderDowntimeLog(records) {
   const body = document.getElementById('downtimeLogTableBody');
   if (!body) return;
   if (records.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px 0;">No downtime recorded in this range.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-dim);padding:20px 0;">No downtime recorded in this range.</td></tr>';
     return;
   }
   const sorted = records.slice().sort((a, b) => (b.startTime || 0) - (a.startTime || 0));
@@ -1126,11 +1247,377 @@ function renderDowntimeLog(records) {
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${REASON_LABELS[r.reason] || r.reason}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);max-width:220px;white-space:normal;">${escapeHtml(r.description) || '<span style="color:var(--text-dim);">—</span>'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);max-width:220px;white-space:normal;">${escapeHtml(r.resolutionNotes) || '<span style="color:var(--text-dim);">—</span>'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtClock(r.startTime)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtClock(r.endTime)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.durationMinutes || 0}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.startedBy || '—'}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.resolvedBy || '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${fmtPersonNameId(r.startedByName, r.startedBy)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${fmtPersonNameId(r.resolvedByName, r.resolvedBy)}</td>
     </tr>
   `).join('');
+}
+
+/* =========================================================
+   QUALITY TAB
+   Records come from QualityDefects/{date}/{machine}/{pushId},
+   written by report.html's Quality Defect form. Same date-keyed
+   archive pattern as Downtime, so it's wired up the same way.
+   ========================================================= */
+const DEFECT_COLORS = ['#e2564f', '#f2a541', '#e0b23a', '#3fb27f', '#5aa9e6', '#a389d4', '#9aa0aa'];
+function colorForDefect(type, index) { return DEFECT_COLORS[index % DEFECT_COLORS.length]; }
+
+let currentQualityHistory = {}; // { date: { pushId: record } } for the selected machine only
+let qualityTypeChart = null;
+let qualityTrendChart = null;
+let qualityRootSubscribed = false;
+let rawQualitySnapshot = {};
+let lastQualityRecords = [];
+
+function recomputeQualityHistoryForCurrentMachine() {
+  const forThisMachine = {};
+  Object.keys(rawQualitySnapshot).forEach(date => {
+    if (rawQualitySnapshot[date][currentMachine]) forThisMachine[date] = rawQualitySnapshot[date][currentMachine];
+  });
+  currentQualityHistory = forThisMachine;
+  renderQualityAll();
+}
+
+const _prevSubscribeToMachineForQuality = subscribeToMachine;
+subscribeToMachine = function (machineId) {
+  _prevSubscribeToMachineForQuality(machineId);
+
+  if (!qualityRootSubscribed) {
+    qualityRootSubscribed = true;
+    dbOnValue(dbRef(db, 'QualityDefects'), (snap) => {
+      rawQualitySnapshot = snap.val() || {};
+      recomputeQualityHistoryForCurrentMachine();
+    });
+  } else {
+    recomputeQualityHistoryForCurrentMachine();
+  }
+};
+
+document.getElementById('qualityRangeSelect').addEventListener('change', () => renderQualityAll());
+
+function flattenQualityRecords(rangeDays) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - rangeDays);
+  const cutoffKey = cutoff.toISOString().slice(0, 10);
+
+  const records = [];
+  Object.keys(currentQualityHistory).forEach(date => {
+    if (date < cutoffKey) return;
+    Object.entries(currentQualityHistory[date]).forEach(([pushId, rec]) => {
+      records.push({ date, pushId, ...rec });
+    });
+  });
+  return records;
+}
+
+function renderQualityAll() {
+  const rangeDays = parseInt(document.getElementById('qualityRangeSelect').value, 10);
+  const records = flattenQualityRecords(rangeDays);
+  lastQualityRecords = records;
+  renderQualitySummary(records);
+  renderQualityTypeChart(records);
+  renderQualityTrendChart(records);
+  renderQualityLog(records);
+}
+
+function renderQualitySummary(records) {
+  const totalQty = records.reduce((a, r) => a + (r.quantity || 0), 0);
+  const byType = {};
+  records.forEach(r => { byType[r.defectType] = (byType[r.defectType] || 0) + (r.quantity || 0); });
+  const topType = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
+  const days = new Set(records.map(r => r.date)).size || 1;
+  const avgPerDay = totalQty / days;
+
+  document.getElementById('qualitySummaryRow').innerHTML = `
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Rejected</div>
+      <div style="font-size:26px;font-weight:700;">${totalQty}</div>
+    </div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Most Common Defect</div>
+      <div style="font-size:20px;font-weight:700;">${topType ? topType[0] : '—'}</div>
+    </div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Avg per Day</div>
+      <div style="font-size:26px;font-weight:700;">${avgPerDay.toFixed(1)}</div>
+    </div>
+    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Incidents</div>
+      <div style="font-size:26px;font-weight:700;">${records.length}</div>
+    </div>
+  `;
+}
+
+function renderQualityTypeChart(records) {
+  const canvas = document.getElementById('qualityTypeChart');
+  if (!canvas) return;
+  const byType = {};
+  records.forEach(r => { byType[r.defectType] = (byType[r.defectType] || 0) + (r.quantity || 0); });
+  const types = Object.keys(byType);
+  const labels = types;
+  const data = Object.values(byType);
+  const colors = types.map((t, i) => colorForDefect(t, i));
+
+  if (qualityTypeChart) {
+    qualityTypeChart.data.labels = labels;
+    qualityTypeChart.data.datasets[0].data = data;
+    qualityTypeChart.data.datasets[0].backgroundColor = colors;
+    qualityTypeChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  qualityTypeChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'bottom', labels: { color: '#f2f0eb' } } } }
+  });
+}
+
+function renderQualityTrendChart(records) {
+  const canvas = document.getElementById('qualityTrendChart');
+  if (!canvas) return;
+  const dates = Array.from(new Set(records.map(r => r.date))).sort();
+  const types = Array.from(new Set(records.map(r => r.defectType)));
+  const datasets = types.map((type, i) => ({
+    label: type,
+    data: dates.map(d => records.filter(r => r.date === d && r.defectType === type).reduce((a, r) => a + (r.quantity || 0), 0)),
+    backgroundColor: colorForDefect(type, i)
+  }));
+
+  if (qualityTrendChart) {
+    qualityTrendChart.data.labels = dates;
+    qualityTrendChart.data.datasets = datasets;
+    qualityTrendChart.options.scales.x.min = dates[Math.max(0, dates.length - 7)];
+    qualityTrendChart.options.scales.x.max = dates[dates.length - 1];
+    qualityTrendChart.options.plugins.zoom.limits.x.max = Math.max(0, dates.length - 1);
+    qualityTrendChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  qualityTrendChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: dates, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: {
+          stacked: true,
+          min: dates[Math.max(0, dates.length - 7)],
+          max: dates[dates.length - 1],
+          grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
+        },
+        y: { stacked: true, beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      },
+      plugins: {
+        legend: { labels: { color: '#f2f0eb' } },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' },
+          limits: { x: { min: 0, max: Math.max(0, dates.length - 1), minRange: 3 } }
+        }
+      }
+    }
+  });
+}
+
+function renderQualityLog(records) {
+  const body = document.getElementById('qualityLogTableBody');
+  if (!body) return;
+  if (records.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:20px 0;">No defects recorded in this range.</td></tr>';
+    return;
+  }
+  const sorted = records.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  body.innerHTML = sorted.map(r => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.defectType)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.quantity || 0}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.coilNo) || '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.drumNo) || '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.productionOperator) || '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${fmtPersonNameId(r.reportedByName, r.reportedBy)}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('qualityDownloadBtn').addEventListener('click', () => {
+  if (!lastQualityRecords.length) return;
+  const rows = lastQualityRecords.map(r => ({
+    Date: r.date,
+    Machine: currentMachine,
+    'Defect Type': r.defectType,
+    Quantity: r.quantity || 0,
+    'Coil No': r.coilNo || '',
+    'Drum No': r.drumNo || '',
+    'Production Operator': r.productionOperator || '',
+    'Reported By': r.reportedByName || r.reportedBy || ''
+  }));
+  const workbook = XLSX.utils.book_new();
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(workbook, sheet, `${currentMachine} Quality`);
+  XLSX.writeFile(workbook, `${currentMachine}_quality_defects.xlsx`);
+});
+
+/* =========================================================
+   OEE TAB
+   Target + ideal-speed are the only manually entered values
+   (Targets/{machine}/{date}: {targetQty, idealSpeed}), set by
+   a supervisor from this tab. Everything else (actual output,
+   downtime minutes, rejected quantity) is read from data that
+   already exists. Deliberately limited to the last 3 CALENDAR
+   days only (not a range selector) to keep this tab's queries
+   small and fast, per what was asked.
+   ========================================================= */
+let currentTargets = {}; // { date: { targetQty, idealSpeed } } for the selected machine only
+let targetsRootSubscribed = false;
+let rawTargetsSnapshot = {};
+let oeeTrendChart = null;
+
+function last3DatesIso() {
+  const out = [];
+  for (let i = 2; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+function recomputeTargetsForCurrentMachine() {
+  currentTargets = rawTargetsSnapshot[currentMachine] || {};
+  renderOeeAll();
+}
+
+const _prevSubscribeToMachineForOee = subscribeToMachine;
+subscribeToMachine = function (machineId) {
+  _prevSubscribeToMachineForOee(machineId);
+
+  if (!targetsRootSubscribed) {
+    targetsRootSubscribed = true;
+    dbOnValue(dbRef(db, 'Targets'), (snap) => {
+      rawTargetsSnapshot = snap.val() || {};
+      recomputeTargetsForCurrentMachine();
+    });
+  } else {
+    recomputeTargetsForCurrentMachine();
+  }
+};
+
+const oeeTargetDateInput = document.getElementById('oeeTargetDate');
+oeeTargetDateInput.value = new Date().toISOString().slice(0, 10);
+
+oeeTargetDateInput.addEventListener('change', () => {
+  const t = currentTargets[oeeTargetDateInput.value] || {};
+  document.getElementById('oeeTargetQty').value = t.targetQty != null ? t.targetQty : '';
+  document.getElementById('oeeIdealSpeed').value = t.idealSpeed != null ? t.idealSpeed : '';
+});
+
+document.getElementById('oeeSaveTargetBtn').addEventListener('click', async () => {
+  const dateStr = oeeTargetDateInput.value;
+  const targetQty = parseFloat(document.getElementById('oeeTargetQty').value);
+  const idealSpeed = parseFloat(document.getElementById('oeeIdealSpeed').value);
+  const msg = document.getElementById('oeeTargetMsg');
+
+  if (!dateStr || isNaN(targetQty) || isNaN(idealSpeed) || targetQty < 0 || idealSpeed < 0) {
+    msg.style.color = 'var(--err)';
+    msg.textContent = 'Enter a valid date, target, and ideal speed.';
+    msg.style.display = 'block';
+    return;
+  }
+
+  try {
+    await dbSet(dbRef(db, `Targets/${currentMachine}/${dateStr}`), { targetQty, idealSpeed });
+    msg.style.color = 'var(--ok)';
+    msg.textContent = `Saved for ${currentMachine} on ${dateStr}.`;
+    msg.style.display = 'block';
+  } catch (err) {
+    msg.style.color = 'var(--err)';
+    msg.textContent = 'Failed to save: ' + err.message;
+    msg.style.display = 'block';
+  }
+});
+
+function computeOeeForDate(dateStr) {
+  const events = eventList();
+  const actual = sumForDate(events, dateStr);
+
+  const downRecords = currentDowntimeHistory[dateStr] ? Object.values(currentDowntimeHistory[dateStr]) : [];
+  const downtimeMinutes = downRecords.reduce((a, r) => a + (r.durationMinutes || 0), 0);
+  const runMinutes = Math.max(0, 1440 - downtimeMinutes);
+  const availability = runMinutes / 1440;
+
+  const defectRecords = currentQualityHistory[dateStr] ? Object.values(currentQualityHistory[dateStr]) : [];
+  const rejected = defectRecords.reduce((a, r) => a + (r.quantity || 0), 0);
+  const quality = actual > 0 ? Math.max(0, (actual - rejected) / actual) : (rejected > 0 ? 0 : null);
+
+  const target = currentTargets[dateStr];
+  const efficiency = target && target.targetQty ? (actual / target.targetQty) * 100 : null;
+  const performance = target && target.idealSpeed && runMinutes > 0 ? actual / (target.idealSpeed * runMinutes) : null;
+
+  const oee = (performance != null && quality != null) ? availability * performance * quality : null;
+
+  return { date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, target, efficiency, performance, oee };
+}
+
+function fmtPct(v) { return v == null ? '—' : (v * 100).toFixed(1) + '%'; }
+
+function renderOeeAll() {
+  const dates = last3DatesIso();
+  const rows = dates.map(computeOeeForDate);
+  renderOeeTable(rows);
+  renderOeeTrendChart(rows);
+}
+
+function renderOeeTable(rows) {
+  const body = document.getElementById('oeeTableBody');
+  if (!body) return;
+  body.innerHTML = rows.map(r => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.target && r.target.targetQty != null ? r.target.targetQty : '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.actual.toFixed(1)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.efficiency == null ? '—' : r.efficiency.toFixed(1) + '%'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.availability)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.performance)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.quality)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;font-weight:700;">${fmtPct(r.oee)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderOeeTrendChart(rows) {
+  const canvas = document.getElementById('oeeTrendChart');
+  if (!canvas) return;
+  const labels = rows.map(r => r.date);
+  const data = rows.map(r => r.oee == null ? null : +(r.oee * 100).toFixed(1));
+
+  if (oeeTrendChart) {
+    oeeTrendChart.data.labels = labels;
+    oeeTrendChart.data.datasets[0].data = data;
+    oeeTrendChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  oeeTrendChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'OEE %', data, borderColor: '#f2a541', backgroundColor: 'rgba(242,165,65,0.15)', fill: true, tension: 0.25, spanGaps: true }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      scales: {
+        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { beginAtZero: true, max: 100, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      },
+      plugins: { legend: { labels: { color: '#f2f0eb' } } }
+    }
+  });
 }
 
 /* =========================================================

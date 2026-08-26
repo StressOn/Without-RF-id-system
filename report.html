@@ -208,9 +208,29 @@ function showMsg(text, type) {
 
 const REASON_LABELS = { noMaterial: 'No Material', moldDefective: 'Mold Defective', maintenance: 'Maintenance' };
 
+// Second line of defense against the "null" node bug - even if a submit
+// button were somehow still clickable without a valid machineId, this stops
+// the write before it happens rather than letting `${machineId}` silently
+// become the string "null" in a database path.
+function requireMachineId() {
+  if (!machineId) {
+    showMsg('No station ID found - nothing was submitted. Ask maintenance to reprint the QR code.', 'err');
+    return false;
+  }
+  return true;
+}
+
 if (!machineId) {
   machineIdDisplay.textContent = 'Unknown';
   showMsg('No station ID found in this QR code. Ask maintenance to reprint it.', 'err');
+  // FIX (the "null" node bug): the page used to just show this warning while
+  // leaving every submit button live - clicking one wrote to
+  // `.../${machineId}` with machineId literally undefined, producing a
+  // "null" node in Firebase instead of a real station. Disable every submit
+  // path outright so there's no way to write data with no station attached.
+  document.getElementById('startDowntimeBtn').disabled = true;
+  document.getElementById('resolveBtn').disabled = true;
+  document.getElementById('submitQualityBtn').disabled = true;
 } else {
   machineIdDisplay.textContent = machineId;
   onAuthStateChanged(auth, (user) => {
@@ -272,6 +292,7 @@ async function checkOperator(id, pin) {
 
 /* ---------- Downtime: start ---------- */
 document.getElementById('startDowntimeBtn').addEventListener('click', async () => {
+  if (!requireMachineId()) return;
   const reason = document.getElementById('downtimeReason').value;
   const description = document.getElementById('startDescription').value.trim();
   const id = document.getElementById('startOperatorId').value.trim();
@@ -301,6 +322,7 @@ document.getElementById('startDowntimeBtn').addEventListener('click', async () =
 
 /* ---------- Downtime: resolve ---------- */
 document.getElementById('resolveBtn').addEventListener('click', async () => {
+  if (!requireMachineId()) return;
   const resolutionNotes = document.getElementById('resolutionNotes').value.trim();
   const id = document.getElementById('resolveOperatorId').value.trim();
   const pin = document.getElementById('resolvePin').value.trim();
@@ -340,6 +362,7 @@ document.getElementById('resolveBtn').addEventListener('click', async () => {
 
 /* ---------- Quality defect ---------- */
 document.getElementById('submitQualityBtn').addEventListener('click', async () => {
+  if (!requireMachineId()) return;
   const defectType = document.getElementById('defectType').value;
   const qty = parseInt(document.getElementById('defectQty').value, 10) || 1;
   const coilNo = document.getElementById('coilNo').value.trim();

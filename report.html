@@ -32,14 +32,19 @@
   .active-card .eyebrow { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--err); margin-bottom: 8px; }
   .active-card .reason { font-size: 22px; font-weight: 700; }
   .active-card .since { color: var(--text-dim); font-size: 14px; margin-top: 4px; }
+  .active-card .desc { color: var(--text); font-size: 14px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); white-space: pre-wrap; }
+  .active-card .desc .lbl { color: var(--text-dim); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
 
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
-  .field input, .field select {
+  .field input, .field select, .field textarea {
     width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--text);
     font-size: 17px; padding: 12px 14px; border-radius: 10px; outline: none;
+    font-family: inherit;
   }
-  .field input:focus, .field select:focus { border-color: var(--amber); }
+  .field textarea { resize: vertical; min-height: 72px; font-size: 15px; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--amber); }
+  .field .hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
 
   button.submit { width: 100%; border: none; border-radius: 10px; padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 6px; }
   button.report { background: var(--amber); color: #1a1204; }
@@ -53,6 +58,8 @@
   .msg.err { background: rgba(226,86,79,0.15); color: var(--err); border: 1px solid rgba(226,86,79,0.3); }
 
   .footer-note { margin-top: 24px; color: var(--text-dim); font-size: 12px; text-align: center; }
+
+  .hidden { display: none; }
 </style>
 </head>
 <body>
@@ -78,6 +85,14 @@
         <div class="eyebrow">Currently down</div>
         <div class="reason" id="activeReasonText">—</div>
         <div class="since" id="activeSinceText">—</div>
+        <div class="desc" id="activeDescWrap">
+          <span class="lbl">Issue reported</span>
+          <span id="activeDescText">—</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="resolutionNotes">Resolution Notes</label>
+        <textarea id="resolutionNotes" placeholder="What was done to fix it?"></textarea>
       </div>
       <div class="field">
         <label for="resolveOperatorId">Your Operator ID</label>
@@ -98,6 +113,10 @@
           <option value="moldDefective">Mold Defective</option>
           <option value="maintenance">Maintenance</option>
         </select>
+      </div>
+      <div class="field">
+        <label for="startDescription">Issue Description</label>
+        <textarea id="startDescription" placeholder="Describe what happened…"></textarea>
       </div>
       <div class="field">
         <label for="startOperatorId">Your Operator ID</label>
@@ -127,6 +146,19 @@
     <div class="field">
       <label for="defectQty">Quantity Rejected</label>
       <input id="defectQty" type="number" inputmode="numeric" min="1" step="1" value="1">
+    </div>
+    <div class="field">
+      <label for="coilNo">Coil No.</label>
+      <input id="coilNo" type="text" autocomplete="off" placeholder="e.g. C-4471">
+    </div>
+    <div class="field">
+      <label for="drumNo">Drum No.</label>
+      <input id="drumNo" type="text" autocomplete="off" placeholder="e.g. D-118">
+    </div>
+    <div class="field">
+      <label for="prodOperatorName">Production Operator Name</label>
+      <input id="prodOperatorName" type="text" autocomplete="off" placeholder="Operator running the machine">
+      <div class="hint">The operator who was running production when this defect occurred (may differ from you).</div>
     </div>
     <div class="field">
       <label for="qualityOperatorId">Your Operator ID</label>
@@ -221,6 +253,7 @@ function watchDowntimeStatus() {
       document.getElementById('activeReasonText').textContent = REASON_LABELS[data.reason] || data.reason;
       const since = data.startTime ? new Date(data.startTime * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
       document.getElementById('activeSinceText').textContent = since ? `Since ${since}` : '';
+      document.getElementById('activeDescText').textContent = data.description && data.description.trim() ? data.description : 'No description given.';
     } else {
       downtimeActiveView.style.display = 'none';
       downtimeStartView.style.display = 'block';
@@ -240,18 +273,27 @@ async function checkOperator(id, pin) {
 /* ---------- Downtime: start ---------- */
 document.getElementById('startDowntimeBtn').addEventListener('click', async () => {
   const reason = document.getElementById('downtimeReason').value;
+  const description = document.getElementById('startDescription').value.trim();
   const id = document.getElementById('startOperatorId').value.trim();
   const pin = document.getElementById('startPin').value.trim();
+
+  if (!description) { showMsg('Please describe the issue before reporting downtime.', 'err'); return; }
 
   const check = await checkOperator(id, pin);
   if (!check.ok) { showMsg(check.error, 'err'); return; }
 
   try {
     await set(ref(db, `DowntimeActive/${machineId}`), {
-      reason, startedBy: id, startTime: Math.floor(Date.now() / 1000), status: 'open'
+      reason,
+      description,
+      startedBy: id,
+      startedByName: check.name,
+      startTime: Math.floor(Date.now() / 1000),
+      status: 'open'
     });
     showMsg('Downtime reported. Station marked down.', 'ok');
     document.getElementById('startPin').value = '';
+    document.getElementById('startDescription').value = '';
   } catch (err) {
     showMsg('Failed to report downtime: ' + err.message, 'err');
   }
@@ -259,8 +301,11 @@ document.getElementById('startDowntimeBtn').addEventListener('click', async () =
 
 /* ---------- Downtime: resolve ---------- */
 document.getElementById('resolveBtn').addEventListener('click', async () => {
+  const resolutionNotes = document.getElementById('resolutionNotes').value.trim();
   const id = document.getElementById('resolveOperatorId').value.trim();
   const pin = document.getElementById('resolvePin').value.trim();
+
+  if (!resolutionNotes) { showMsg('Please add a resolution note before closing this downtime.', 'err'); return; }
 
   const check = await checkOperator(id, pin);
   if (!check.ok) { showMsg(check.error, 'err'); return; }
@@ -274,8 +319,12 @@ document.getElementById('resolveBtn').addEventListener('click', async () => {
     const archiveRef = push(ref(db, `Downtime/${dateStr}/${machineId}`));
     await set(archiveRef, {
       reason: currentActiveDowntime.reason,
+      description: currentActiveDowntime.description || '',
+      resolutionNotes,
       startedBy: currentActiveDowntime.startedBy,
+      startedByName: currentActiveDowntime.startedByName || currentActiveDowntime.startedBy,
       resolvedBy: id,
+      resolvedByName: check.name,
       startTime: currentActiveDowntime.startTime,
       endTime,
       durationMinutes
@@ -283,6 +332,7 @@ document.getElementById('resolveBtn').addEventListener('click', async () => {
     await remove(ref(db, `DowntimeActive/${machineId}`));
     showMsg('Downtime resolved. Station back up.', 'ok');
     document.getElementById('resolvePin').value = '';
+    document.getElementById('resolutionNotes').value = '';
   } catch (err) {
     showMsg('Failed to resolve downtime: ' + err.message, 'err');
   }
@@ -292,6 +342,9 @@ document.getElementById('resolveBtn').addEventListener('click', async () => {
 document.getElementById('submitQualityBtn').addEventListener('click', async () => {
   const defectType = document.getElementById('defectType').value;
   const qty = parseInt(document.getElementById('defectQty').value, 10) || 1;
+  const coilNo = document.getElementById('coilNo').value.trim();
+  const drumNo = document.getElementById('drumNo').value.trim();
+  const prodOperatorName = document.getElementById('prodOperatorName').value.trim();
   const id = document.getElementById('qualityOperatorId').value.trim();
   const pin = document.getElementById('qualityPin').value.trim();
 
@@ -302,11 +355,21 @@ document.getElementById('submitQualityBtn').addEventListener('click', async () =
   try {
     const defectRef = push(ref(db, `QualityDefects/${dateStr}/${machineId}`));
     await set(defectRef, {
-      defectType, quantity: qty, reportedBy: id, timestamp: Math.floor(Date.now() / 1000)
+      defectType,
+      quantity: qty,
+      coilNo: coilNo || null,
+      drumNo: drumNo || null,
+      productionOperator: prodOperatorName || null,
+      reportedBy: id,
+      reportedByName: check.name,
+      timestamp: Math.floor(Date.now() / 1000)
     });
     showMsg('Defect reported. Thanks!', 'ok');
     document.getElementById('qualityPin').value = '';
     document.getElementById('defectQty').value = '1';
+    document.getElementById('coilNo').value = '';
+    document.getElementById('drumNo').value = '';
+    document.getElementById('prodOperatorName').value = '';
   } catch (err) {
     showMsg('Failed to report defect: ' + err.message, 'err');
   }

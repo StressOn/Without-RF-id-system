@@ -313,16 +313,29 @@
     </div>
     <div class="tab-panel" id="tab-oee">
       <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
-        <h2 style="font-size:15px;margin:0 0 4px;">Daily Target &amp; Ideal Speed</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Manual entry, used to compute OEE and efficiency for this machine. Set once per day.</div>
+        <h2 style="font-size:15px;margin:0 0 4px;">Monthly Target</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Set once per month by the factory owner. Day and week targets below are derived from this automatically and re-balance to catch up or ease off based on actual output - no manual daily entry needed.</div>
+        <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Month</label>
+            <input type="month" id="monthlyTargetMonth" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Target for the whole month (units)</label>
+            <input type="number" id="monthlyTargetQty" min="0" step="1" placeholder="e.g. 600000" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;width:200px;">
+          </div>
+          <button id="monthlyTargetSaveBtn" style="background:var(--amber);color:#1a1204;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;">Save</button>
+        </div>
+        <div id="monthlyTargetMsg" style="margin-top:12px;font-size:13px;color:var(--ok);display:none;"></div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Ideal Speed</h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Manual entry, used for the Performance figure in OEE. Machine capability - set once per day, doesn't usually change.</div>
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Date</label>
             <input type="date" id="oeeTargetDate" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Target (24 hr, units)</label>
-            <input type="number" id="oeeTargetQty" min="0" step="1" placeholder="e.g. 20000" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;width:160px;">
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Ideal Speed (units/min)</label>
@@ -331,6 +344,25 @@
           <button id="oeeSaveTargetBtn" style="background:var(--amber);color:#1a1204;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;">Save</button>
         </div>
         <div id="oeeTargetMsg" style="margin-top:12px;font-size:13px;color:var(--ok);display:none;"></div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Daily Target vs Actual - <span id="dailyTargetMonthLabel"></span></h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Target re-balances daily based on how the month is actually going. Dashed line is a forecast for the rest of the month based on the last 7 days' average.</div>
+        <div style="position:relative;height:260px;"><canvas id="dailyTargetChart"></canvas></div>
+        <div id="monthForecastNote" style="color:var(--text-dim);font-size:12px;margin-top:12px;"></div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Weekly Rollup - <span id="weeklyTargetMonthLabel"></span></h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Same daily targets grouped into 7-day blocks.</div>
+        <div style="position:relative;height:240px;"><canvas id="weeklyRollupChart"></canvas></div>
+      </div>
+
+      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <h2 style="font-size:15px;margin:0 0 4px;">Yearly Achievement - <span id="yearlyTargetYearLabel"></span></h2>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Cumulative actual vs cumulative target across the year. Months with no monthly target set show as a flat line (nothing to compare against).</div>
+        <div style="position:relative;height:260px;"><canvas id="yearlyAchievementChart"></canvas></div>
       </div>
 
       <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
@@ -351,7 +383,7 @@
             <tbody id="oeeTableBody"></tbody>
           </table>
         </div>
-        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Days without a saved target/ideal-speed show as “—” for Performance/OEE; Availability and Efficiency don't require a target.</div>
+        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Days without a saved monthly target show as “—” for Performance/OEE; Availability and Efficiency don't require a target.</div>
       </div>
 
       <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
@@ -452,7 +484,7 @@ function resizeChartsForTab(tab) {
     staffs: [staffsChart],
     downtime: [downtimeReasonChart, downtimeTrendChart],
     quality: [qualityTypeChart, qualityTrendChart],
-    oee: [oeeTrendChart]
+    oee: [oeeTrendChart, dailyTargetChart, weeklyRollupChart, yearlyAchievementChart]
   };
   (chartsByTab[tab] || []).forEach(c => { if (c) c.resize(); });
 }
@@ -1467,19 +1499,38 @@ document.getElementById('qualityDownloadBtn').addEventListener('click', () => {
 });
 
 /* =========================================================
-   OEE TAB
-   Target + ideal-speed are the only manually entered values
-   (Targets/{machine}/{date}: {targetQty, idealSpeed}), set by
-   a supervisor from this tab. Everything else (actual output,
-   downtime minutes, rejected quantity) is read from data that
-   already exists. Deliberately limited to the last 3 CALENDAR
-   days only (not a range selector) to keep this tab's queries
-   small and fast, per what was asked.
+   OEE / TARGET TAB
+   Ideal-speed is still a manual per-day entry (Targets/{machine}/{date}.idealSpeed) -
+   it's a machine capability constant, not a planning number.
+
+   Daily/weekly targets are NO LONGER manually entered. A supervisor sets
+   ONE number - the monthly target (MonthlyTargets/{machine}/{YYYY-MM}) -
+   and every day's target is derived from it with a "catch-up" formula:
+
+     remainingTarget = monthlyTarget - actualSoFarBeforeThisDay
+     remainingDays    = daysInMonth - dayOfMonth + 1   (today counts as remaining)
+     todayTarget      = remainingTarget / remainingDays
+
+   This is recomputed fresh from raw actuals every render, for every day of
+   the month at once - nothing is persisted or "locked in", so there's no
+   staleness or drift to manage: a past day's target always comes out the
+   same (its actuals don't change), and today's/future days' targets
+   automatically rise or ease off as actuals come in. Daily targets for a
+   month always sum exactly to that month's target, by construction.
+
+   The last-3-days OEE table further down still exists as before -
+   deliberately small/fast - but now sources its target from this same
+   adaptive calculation instead of a manually-typed daily figure.
    ========================================================= */
-let currentTargets = {}; // { date: { targetQty, idealSpeed } } for the selected machine only
+let currentTargets = {}; // { date: { idealSpeed } } for the selected machine only (ideal speed only now)
 let targetsRootSubscribed = false;
 let rawTargetsSnapshot = {};
+let rawMonthlyTargetsSnapshot = {}; // { machineId: { 'YYYY-MM': { targetQty, setBy, setAt } } }
+let monthlyTargetsRootSubscribed = false;
 let oeeTrendChart = null;
+let dailyTargetChart = null;
+let weeklyRollupChart = null;
+let yearlyAchievementChart = null;
 
 function last3DatesIso() {
   const out = [];
@@ -1489,6 +1540,140 @@ function last3DatesIso() {
     out.push(d.toISOString().slice(0, 10));
   }
   return out;
+}
+
+function daysInMonth(year, month) { // month is 1-12
+  return new Date(year, month, 0).getDate();
+}
+
+// One pass over every event, bucketed by shift-day date key - reused by
+// both the monthly and yearly views instead of re-scanning the full event
+// list once per day/month (which would be O(days * events)).
+function buildDailyTotalsMap() {
+  const map = {};
+  eventList().forEach(e => {
+    const k = dateKeyFor(e.timestamp);
+    map[k] = (map[k] || 0) + e.count;
+  });
+  return map;
+}
+
+// Builds the adaptive daily target/actual table for one calendar month.
+// monthlyTargetQty may be null (no target set for that month yet) - target
+// fields come back null in that case, actuals are still shown.
+//
+// FIX (escalating last-day target bug): days that have already fully
+// completed still use the day-by-day catch-up formula (each one reacting
+// to the actual result of the day before it - that part was always
+// correct). But TODAY and every day still to come get ONE flat target
+// instead of being recomputed one at a time through a still-in-progress
+// today. The old approach treated today's partial count (production isn't
+// done yet) as if today had already failed, and dumped that assumed
+// shortfall onto whatever was left - increasingly concentrated onto the
+// very last day of the month, which is why it could spike to a number far
+// above anything the machine has ever produced in a day. Freezing the
+// remaining days to (remaining target) / (remaining days) guarantees they
+// always add up to exactly the balance left to make - never more.
+function computeAdaptiveMonthTargets(yearMonth, monthlyTargetQty, dailyTotals) {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const nDays = daysInMonth(year, month);
+  const todayKey = dateKeyFor(Math.floor(Date.now() / 1000));
+  const todayInThisMonth = todayKey.slice(0, 7) === yearMonth;
+  const todayDayOfMonth = todayInThisMonth ? parseInt(todayKey.slice(8, 10), 10) : null;
+  // Fully past or fully future months have no "in-progress" day at all -
+  // run the sequential formula for the whole month in that case.
+  const sequentialCutoff = todayDayOfMonth != null ? todayDayOfMonth - 1 : nDays;
+
+  const rows = [];
+  let cumulativeActual = 0;
+  let cumulativeTarget = 0;
+
+  for (let day = 1; day <= sequentialCutoff; day++) {
+    const dateStr = `${yearMonth}-${String(day).padStart(2, '0')}`;
+    const actual = dailyTotals[dateStr] || 0;
+    const remainingDays = nDays - day + 1;
+    const target = monthlyTargetQty != null ? Math.max(0, monthlyTargetQty - cumulativeActual) / remainingDays : null;
+    cumulativeActual += actual;
+    cumulativeTarget += (target || 0);
+    rows.push({ date: dateStr, dayOfMonth: day, target, actual, cumulativeActual, cumulativeTarget });
+  }
+
+  if (todayDayOfMonth != null) {
+    const remainingDays = nDays - todayDayOfMonth + 1;
+    const flatTarget = monthlyTargetQty != null ? Math.max(0, monthlyTargetQty - cumulativeActual) / remainingDays : null;
+    for (let day = todayDayOfMonth; day <= nDays; day++) {
+      const dateStr = `${yearMonth}-${String(day).padStart(2, '0')}`;
+      const actual = dailyTotals[dateStr] || 0; // today's actual-so-far still shows on the Actual bar - it just no longer feeds back into the target math
+      cumulativeActual += actual;
+      cumulativeTarget += (flatTarget || 0);
+      rows.push({ date: dateStr, dayOfMonth: day, target: flatTarget, actual, cumulativeActual, cumulativeTarget });
+    }
+  }
+
+  return rows;
+}
+
+// Trailing-average forecast: averages the last up-to-7 elapsed days'
+// actuals and projects that flat rate across the remaining days of the
+// month, added onto today's cumulative actual. Returns a `forecast` array
+// aligned with `rows` (null for past days, starts at today) for charting,
+// plus the plain-language numbers used in the note under the chart.
+function computeForecast(rows, monthlyTargetQty) {
+  const todayKey = dateKeyFor(Math.floor(Date.now() / 1000));
+  const todayIdx = rows.findIndex(r => r.date === todayKey);
+  const forecast = rows.map(() => null);
+  if (todayIdx < 0) {
+    // Selected month is entirely in the past or entirely in the future -
+    // nothing to forecast from "today" within it.
+    return { forecast, trailingAvg: null, projectedMonthEnd: null, todayIdx };
+  }
+  const elapsed = rows.slice(0, todayIdx + 1);
+  const trailing = elapsed.slice(-7);
+  const trailingAvg = trailing.length ? trailing.reduce((a, r) => a + r.actual, 0) / trailing.length : 0;
+
+  let cum = elapsed[elapsed.length - 1].cumulativeActual;
+  forecast[todayIdx] = cum;
+  for (let i = todayIdx + 1; i < rows.length; i++) {
+    cum += trailingAvg;
+    forecast[i] = cum;
+  }
+  return { forecast, trailingAvg, projectedMonthEnd: cum, todayIdx };
+}
+
+function computeWeeklyRollup(rows) {
+  const weeks = [];
+  for (let i = 0; i < rows.length; i += 7) {
+    const chunk = rows.slice(i, i + 7);
+    const hasTarget = chunk.some(r => r.target != null);
+    weeks.push({
+      label: chunk.length > 1 ? `Day ${chunk[0].dayOfMonth}-${chunk[chunk.length - 1].dayOfMonth}` : `Day ${chunk[0].dayOfMonth}`,
+      target: hasTarget ? chunk.reduce((a, r) => a + (r.target || 0), 0) : null,
+      actual: chunk.reduce((a, r) => a + r.actual, 0)
+    });
+  }
+  return weeks;
+}
+
+function computeYearlyAchievement(year, dailyTotals) {
+  const months = [];
+  let cumulativeActual = 0;
+  let cumulativeTarget = 0;
+  let anyTargetSet = false;
+  for (let m = 1; m <= 12; m++) {
+    const ym = `${year}-${String(m).padStart(2, '0')}`;
+    const monthlyTargetQty = (rawMonthlyTargetsSnapshot[currentMachine] && rawMonthlyTargetsSnapshot[currentMachine][ym])
+      ? rawMonthlyTargetsSnapshot[currentMachine][ym].targetQty : null;
+    if (monthlyTargetQty != null) anyTargetSet = true;
+    const nDays = daysInMonth(year, m);
+    let actual = 0;
+    for (let day = 1; day <= nDays; day++) {
+      actual += dailyTotals[`${ym}-${String(day).padStart(2, '0')}`] || 0;
+    }
+    cumulativeActual += actual;
+    cumulativeTarget += (monthlyTargetQty || 0);
+    months.push({ month: ym, actual, target: monthlyTargetQty, cumulativeActual, cumulativeTarget: anyTargetSet ? cumulativeTarget : null });
+  }
+  return months;
 }
 
 function recomputeTargetsForCurrentMachine() {
@@ -1509,32 +1694,83 @@ subscribeToMachine = function (machineId) {
   } else {
     recomputeTargetsForCurrentMachine();
   }
+
+  if (!monthlyTargetsRootSubscribed) {
+    monthlyTargetsRootSubscribed = true;
+    dbOnValue(dbRef(db, 'MonthlyTargets'), (snap) => {
+      rawMonthlyTargetsSnapshot = snap.val() || {};
+      loadMonthlyTargetInputForSelectedMonth();
+      renderOeeAll();
+    });
+  } else {
+    loadMonthlyTargetInputForSelectedMonth();
+    renderOeeAll();
+  }
 };
 
-const oeeTargetDateInput = document.getElementById('oeeTargetDate');
-oeeTargetDateInput.value = new Date().toISOString().slice(0, 10);
+/* ---------- Monthly target input ---------- */
+const monthlyTargetMonthInput = document.getElementById('monthlyTargetMonth');
+monthlyTargetMonthInput.value = new Date().toISOString().slice(0, 7);
 
-oeeTargetDateInput.addEventListener('change', () => {
-  const t = currentTargets[oeeTargetDateInput.value] || {};
-  document.getElementById('oeeTargetQty').value = t.targetQty != null ? t.targetQty : '';
-  document.getElementById('oeeIdealSpeed').value = t.idealSpeed != null ? t.idealSpeed : '';
+function loadMonthlyTargetInputForSelectedMonth() {
+  const ym = monthlyTargetMonthInput.value;
+  const existing = (rawMonthlyTargetsSnapshot[currentMachine] || {})[ym];
+  document.getElementById('monthlyTargetQty').value = existing && existing.targetQty != null ? existing.targetQty : '';
+}
+monthlyTargetMonthInput.addEventListener('change', () => {
+  loadMonthlyTargetInputForSelectedMonth();
+  renderOeeAll();
 });
 
-document.getElementById('oeeSaveTargetBtn').addEventListener('click', async () => {
-  const dateStr = oeeTargetDateInput.value;
-  const targetQty = parseFloat(document.getElementById('oeeTargetQty').value);
-  const idealSpeed = parseFloat(document.getElementById('oeeIdealSpeed').value);
-  const msg = document.getElementById('oeeTargetMsg');
+document.getElementById('monthlyTargetSaveBtn').addEventListener('click', async () => {
+  const ym = monthlyTargetMonthInput.value;
+  const targetQty = parseFloat(document.getElementById('monthlyTargetQty').value);
+  const msg = document.getElementById('monthlyTargetMsg');
 
-  if (!dateStr || isNaN(targetQty) || isNaN(idealSpeed) || targetQty < 0 || idealSpeed < 0) {
+  if (!ym || isNaN(targetQty) || targetQty < 0) {
     msg.style.color = 'var(--err)';
-    msg.textContent = 'Enter a valid date, target, and ideal speed.';
+    msg.textContent = 'Enter a valid month and target quantity.';
     msg.style.display = 'block';
     return;
   }
 
   try {
-    await dbSet(dbRef(db, `Targets/${currentMachine}/${dateStr}`), { targetQty, idealSpeed });
+    await dbSet(dbRef(db, `MonthlyTargets/${currentMachine}/${ym}`), {
+      targetQty, setAt: Math.floor(Date.now() / 1000)
+    });
+    msg.style.color = 'var(--ok)';
+    msg.textContent = `Saved monthly target for ${currentMachine}, ${ym}.`;
+    msg.style.display = 'block';
+  } catch (err) {
+    msg.style.color = 'var(--err)';
+    msg.textContent = 'Failed to save: ' + err.message;
+    msg.style.display = 'block';
+  }
+});
+
+/* ---------- Ideal speed input (unchanged in spirit, targetQty dropped) ---------- */
+const oeeTargetDateInput = document.getElementById('oeeTargetDate');
+oeeTargetDateInput.value = new Date().toISOString().slice(0, 10);
+
+oeeTargetDateInput.addEventListener('change', () => {
+  const t = currentTargets[oeeTargetDateInput.value] || {};
+  document.getElementById('oeeIdealSpeed').value = t.idealSpeed != null ? t.idealSpeed : '';
+});
+
+document.getElementById('oeeSaveTargetBtn').addEventListener('click', async () => {
+  const dateStr = oeeTargetDateInput.value;
+  const idealSpeed = parseFloat(document.getElementById('oeeIdealSpeed').value);
+  const msg = document.getElementById('oeeTargetMsg');
+
+  if (!dateStr || isNaN(idealSpeed) || idealSpeed < 0) {
+    msg.style.color = 'var(--err)';
+    msg.textContent = 'Enter a valid date and ideal speed.';
+    msg.style.display = 'block';
+    return;
+  }
+
+  try {
+    await dbSet(dbRef(db, `Targets/${currentMachine}/${dateStr}`), { idealSpeed });
     msg.style.color = 'var(--ok)';
     msg.textContent = `Saved for ${currentMachine} on ${dateStr}.`;
     msg.style.display = 'block';
@@ -1545,6 +1781,7 @@ document.getElementById('oeeSaveTargetBtn').addEventListener('click', async () =
   }
 });
 
+/* ---------- Last-3-days OEE table, now sourcing target from the adaptive calc ---------- */
 function computeOeeForDate(dateStr) {
   const events = eventList();
   const actual = sumForDate(events, dateStr);
@@ -1558,22 +1795,31 @@ function computeOeeForDate(dateStr) {
   const rejected = defectRecords.reduce((a, r) => a + (r.quantity || 0), 0);
   const quality = actual > 0 ? Math.max(0, (actual - rejected) / actual) : (rejected > 0 ? 0 : null);
 
-  const target = currentTargets[dateStr];
-  const efficiency = target && target.targetQty ? (actual / target.targetQty) * 100 : null;
-  const performance = target && target.idealSpeed && runMinutes > 0 ? actual / (target.idealSpeed * runMinutes) : null;
+  const yearMonth = dateStr.slice(0, 7);
+  const monthlyTargetQty = (rawMonthlyTargetsSnapshot[currentMachine] || {})[yearMonth]
+    ? rawMonthlyTargetsSnapshot[currentMachine][yearMonth].targetQty : null;
+  const monthRows = computeAdaptiveMonthTargets(yearMonth, monthlyTargetQty, buildDailyTotalsMap());
+  const dayRow = monthRows.find(r => r.date === dateStr);
+  const targetQty = dayRow ? dayRow.target : null;
+
+  const idealSpeed = currentTargets[dateStr] ? currentTargets[dateStr].idealSpeed : null;
+  const efficiency = targetQty ? (actual / targetQty) * 100 : null;
+  const performance = idealSpeed && runMinutes > 0 ? actual / (idealSpeed * runMinutes) : null;
 
   const oee = (performance != null && quality != null) ? availability * performance * quality : null;
 
-  return { date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, target, efficiency, performance, oee };
+  return { date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, targetQty, efficiency, performance, oee };
 }
 
 function fmtPct(v) { return v == null ? '—' : (v * 100).toFixed(1) + '%'; }
+function fmtNum(v) { return v == null ? '—' : v.toFixed(1); }
 
 function renderOeeAll() {
   const dates = last3DatesIso();
   const rows = dates.map(computeOeeForDate);
   renderOeeTable(rows);
   renderOeeTrendChart(rows);
+  renderMonthlyTargetViews();
 }
 
 function renderOeeTable(rows) {
@@ -1582,7 +1828,7 @@ function renderOeeTable(rows) {
   body.innerHTML = rows.map(r => `
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.target && r.target.targetQty != null ? r.target.targetQty : '—'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtNum(r.targetQty)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.actual.toFixed(1)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.efficiency == null ? '—' : r.efficiency.toFixed(1) + '%'}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.availability)}</td>
@@ -1616,6 +1862,146 @@ function renderOeeTrendChart(rows) {
         y: { beginAtZero: true, max: 100, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
       },
       plugins: { legend: { labels: { color: '#f2f0eb' } } }
+    }
+  });
+}
+
+/* ---------- Monthly target vs actual, weekly rollup, yearly achievement ---------- */
+function renderMonthlyTargetViews() {
+  const ym = monthlyTargetMonthInput.value;
+  if (!ym) return;
+  const [year] = ym.split('-').map(Number);
+  const monthlyTargetQty = (rawMonthlyTargetsSnapshot[currentMachine] || {})[ym]
+    ? rawMonthlyTargetsSnapshot[currentMachine][ym].targetQty : null;
+  const dailyTotals = buildDailyTotalsMap();
+  const rows = computeAdaptiveMonthTargets(ym, monthlyTargetQty, dailyTotals);
+  const { forecast, trailingAvg, projectedMonthEnd } = computeForecast(rows, monthlyTargetQty);
+
+  document.getElementById('dailyTargetMonthLabel').textContent = ym;
+  document.getElementById('weeklyTargetMonthLabel').textContent = ym;
+  document.getElementById('yearlyTargetYearLabel').textContent = String(year);
+
+  const noteEl = document.getElementById('monthForecastNote');
+  if (monthlyTargetQty == null) {
+    noteEl.textContent = 'No target set for this month yet - showing actuals only.';
+  } else if (projectedMonthEnd == null) {
+    noteEl.textContent = `Month target: ${monthlyTargetQty.toFixed(0)} units.`;
+  } else {
+    const diff = projectedMonthEnd - monthlyTargetQty;
+    const pace = diff >= 0 ? `on pace to exceed it by ~${diff.toFixed(0)}` : `on pace to fall short by ~${Math.abs(diff).toFixed(0)}`;
+    noteEl.textContent = `Month target: ${monthlyTargetQty.toFixed(0)} units. At the last 7 days' average (~${trailingAvg.toFixed(1)}/day), projected month-end total is ~${projectedMonthEnd.toFixed(0)} - ${pace} units.`;
+  }
+
+  renderDailyTargetChart(rows, forecast);
+  renderWeeklyRollupChart(computeWeeklyRollup(rows));
+  renderYearlyAchievementChart(computeYearlyAchievement(year, dailyTotals));
+}
+
+function renderDailyTargetChart(rows, forecast) {
+  const canvas = document.getElementById('dailyTargetChart');
+  if (!canvas) return;
+  const labels = rows.map(r => String(r.dayOfMonth));
+  const targetData = rows.map(r => r.target != null ? +r.target.toFixed(1) : null);
+  const actualData = rows.map(r => +r.actual.toFixed(1));
+  const forecastData = forecast.map(v => v != null ? +v.toFixed(1) : null);
+
+  if (dailyTargetChart) {
+    dailyTargetChart.data.labels = labels;
+    dailyTargetChart.data.datasets[0].data = targetData;
+    dailyTargetChart.data.datasets[1].data = actualData;
+    dailyTargetChart.data.datasets[2].data = forecastData;
+    dailyTargetChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  dailyTargetChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { type: 'line', label: 'Target', data: targetData, borderColor: '#9aa0aa', backgroundColor: 'transparent', tension: 0.2, spanGaps: true, order: 1 },
+        { type: 'bar', label: 'Actual', data: actualData, backgroundColor: '#f2a541', order: 2 },
+        { type: 'line', label: 'Forecast (cumulative)', data: forecastData, borderColor: '#4caf7d', borderDash: [6, 4], backgroundColor: 'transparent', tension: 0, spanGaps: true, pointRadius: 0, order: 0, yAxisID: 'yCumulative' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { labels: { color: '#f2f0eb' } } },
+      scales: {
+        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        yCumulative: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#9aa0aa' } }
+      }
+    }
+  });
+}
+
+function renderWeeklyRollupChart(weeks) {
+  const canvas = document.getElementById('weeklyRollupChart');
+  if (!canvas) return;
+  const labels = weeks.map(w => w.label);
+  const targetData = weeks.map(w => w.target != null ? +w.target.toFixed(1) : null);
+  const actualData = weeks.map(w => +w.actual.toFixed(1));
+
+  if (weeklyRollupChart) {
+    weeklyRollupChart.data.labels = labels;
+    weeklyRollupChart.data.datasets[0].data = targetData;
+    weeklyRollupChart.data.datasets[1].data = actualData;
+    weeklyRollupChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  weeklyRollupChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Target', data: targetData, backgroundColor: '#9aa0aa' },
+        { label: 'Actual', data: actualData, backgroundColor: '#f2a541' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { labels: { color: '#f2f0eb' } } },
+      scales: {
+        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      }
+    }
+  });
+}
+
+function renderYearlyAchievementChart(months) {
+  const canvas = document.getElementById('yearlyAchievementChart');
+  if (!canvas) return;
+  const labels = months.map(m => m.month.slice(5)); // just "01".."12"
+  const actualData = months.map(m => +m.cumulativeActual.toFixed(1));
+  const targetData = months.map(m => m.cumulativeTarget != null ? +m.cumulativeTarget.toFixed(1) : null);
+
+  if (yearlyAchievementChart) {
+    yearlyAchievementChart.data.labels = labels;
+    yearlyAchievementChart.data.datasets[0].data = targetData;
+    yearlyAchievementChart.data.datasets[1].data = actualData;
+    yearlyAchievementChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  yearlyAchievementChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Cumulative Target', data: targetData, borderColor: '#9aa0aa', backgroundColor: 'transparent', tension: 0.15, spanGaps: true },
+        { label: 'Cumulative Actual', data: actualData, borderColor: '#f2a541', backgroundColor: 'rgba(242,165,65,0.15)', fill: true, tension: 0.15 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { labels: { color: '#f2f0eb' } } },
+      scales: {
+        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      }
     }
   });
 }

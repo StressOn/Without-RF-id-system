@@ -12,6 +12,7 @@
     --amber: #f2a541;
     --amber-dim: #8a6a2f;
     --ok: #3fb27f;
+    --warn: #e0b23a;
     --err: #e2564f;
     --text: #f2f0eb;
     --text-dim: #9aa0aa;
@@ -59,41 +60,6 @@
   }
   .status-dot.live { background: var(--ok); }
 
-  /* --- Machine selector for testing --- */
-  .machine-selector {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-  .machine-selector .title {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .machine-selector select {
-    width: 100%;
-    background: var(--ink);
-    border: 1px solid var(--line);
-    color: var(--text);
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 16px;
-  }
-  .machine-selector button {
-    width: 100%;
-    background: var(--amber);
-    color: #1a1204;
-    border: none;
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 10px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
   /* --- Currently running card --- */
   .running-card {
     background: var(--panel);
@@ -109,13 +75,40 @@
   .running-card .op-name { font-size: 24px; font-weight: 700; }
   .running-card .since { color: var(--text-dim); font-size: 14px; margin-top: 4px; }
 
+  /* --- Reconciliation panel (shown mid punch-out) --- */
+  .recon-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .recon-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .recon-row:last-child { border-bottom: none; }
+  .recon-row .val { font-weight: 700; }
+  .recon-row.unaccounted .val { color: var(--warn); }
+  .recon-row.unaccounted.high .val { color: var(--err); }
+  .recon-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
   /* --- Form --- */
   .field { margin-bottom: 16px; }
   .field label {
     display: block; font-size: 12px; letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px;
   }
-  .field input {
+  .field input, .field textarea {
     width: 100%;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -124,8 +117,11 @@
     padding: 14px 16px;
     border-radius: 10px;
     outline: none;
+    font-family: inherit;
   }
-  .field input:focus { border-color: var(--amber); }
+  .field textarea { font-size: 15px; resize: vertical; min-height: 64px; }
+  .field input:focus, .field textarea:focus { border-color: var(--amber); }
+  .field .hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
 
   button {
     width: 100%;
@@ -142,8 +138,7 @@
   .btn-primary:active { background: var(--amber-dim); }
   .btn-danger { background: var(--err); color: #fff; }
   .btn-danger:active { opacity: 0.85; }
-  .btn-secondary { background: var(--line); color: var(--text); }
-  .btn-secondary:active { opacity: 0.85; }
+  .btn-secondary { background: transparent; border: 1px solid var(--line); color: var(--text-dim); }
 
   .msg {
     margin-top: 16px;
@@ -165,40 +160,6 @@
   }
 
   .hidden { display: none; }
-
-  /* Scrap entry styles */
-  .scrap-prompt {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 20px;
-    margin-top: 16px;
-  }
-  .scrap-prompt .title {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--amber);
-  }
-  .scrap-prompt .subtitle {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 16px;
-  }
-  .btn-row {
-    display: flex;
-    gap: 10px;
-  }
-  .btn-row button {
-    flex: 1;
-    padding: 14px;
-    font-size: 15px;
-  }
-  .scrap-prompt input {
-    font-size: 24px;
-    padding: 16px;
-    text-align: center;
-  }
 </style>
 </head>
 <body>
@@ -211,17 +172,6 @@
     </div>
   </div>
 
-  <!-- Machine selector for testing (shown when no machine in URL) -->
-  <div id="machineSelector" class="machine-selector hidden">
-    <div class="title">🔧 Select Machine (for testing)</div>
-    <select id="manualMachineSelect">
-      <option value="M01-A">M01-A</option>
-      <option value="M01-B">M01-B</option>
-      <option value="M01-C">M01-C</option>
-    </select>
-    <button id="setMachineBtn">Go to Machine</button>
-  </div>
-
   <!-- Shown when someone is already punched in -->
   <div id="runningView" class="hidden">
     <div class="running-card">
@@ -230,6 +180,17 @@
       <div class="since" id="runningSince">—</div>
     </div>
     <button class="btn-danger" id="punchOutBtn">Punch Out</button>
+  </div>
+
+  <!-- Shown after "Punch Out" is tapped, before it's actually finalized -->
+  <div id="punchOutConfirmView" class="hidden">
+    <div class="field">
+      <label for="scrapQty">Scrap Quantity (this shift)</label>
+      <input id="scrapQty" type="number" inputmode="numeric" min="0" step="1" value="0">
+      <div class="hint">Total rejected/scrap units produced during this shift.</div>
+    </div>
+    <button class="btn-danger" id="confirmPunchOutBtn">Confirm Punch Out</button>
+    <button class="btn-secondary" id="cancelPunchOutBtn">Cancel</button>
   </div>
 
   <!-- Shown when nobody is punched in -->
@@ -245,27 +206,13 @@
     <button class="btn-primary" id="punchInBtn">Punch In</button>
   </div>
 
-  <!-- Scrap entry - shown during punch out -->
-  <div id="scrapView" class="hidden">
-    <div class="scrap-prompt">
-      <div class="title">📊 Enter Scrap Quantity</div>
-      <div class="subtitle">How many units were scrapped during this session?</div>
-      <div class="field">
-        <label for="scrapQuantity">Scrap Units</label>
-        <input id="scrapQuantity" type="number" min="0" step="1" placeholder="0">
-      </div>
-      <div class="btn-row">
-        <button class="btn-secondary" id="scrapCancelBtn">Skip (0 scrap)</button>
-        <button class="btn-primary" id="scrapConfirmBtn">Confirm & Punch Out</button>
-      </div>
-    </div>
-  </div>
-
   <div class="msg" id="msg"></div>
 
   <div class="footer-note">
     Scan this machine's QR code again anytime to punch out.<br>
-    <a href="dashboard11.html" style="color: var(--amber); text-decoration: none;">Production Dashboard</a>
+    <a href="production.html" style="color: var(--amber); text-decoration: none;">Production Dashboard</a>
+    &nbsp;·&nbsp;
+    <a href="dashboard.html" style="color: var(--amber); text-decoration: none;">Login / Operator Dashboard</a>
   </div>
 </div>
 
@@ -290,53 +237,27 @@ const auth = getAuth(app);
 
 // Machine ID comes from the QR code: punch.html?machine=M01
 const params = new URLSearchParams(window.location.search);
-let machineId = params.get('machine');
+const machineId = params.get('machine');
 
 const machineIdDisplay = document.getElementById('machineIdDisplay');
 const connDot = document.getElementById('connDot');
 const runningView = document.getElementById('runningView');
 const loginView = document.getElementById('loginView');
+const punchOutConfirmView = document.getElementById('punchOutConfirmView');
 const runningOpName = document.getElementById('runningOpName');
 const runningSince = document.getElementById('runningSince');
 const msg = document.getElementById('msg');
-const scrapView = document.getElementById('scrapView');
-const scrapQuantity = document.getElementById('scrapQuantity');
-const scrapConfirmBtn = document.getElementById('scrapConfirmBtn');
-const scrapCancelBtn = document.getElementById('scrapCancelBtn');
-const machineSelector = document.getElementById('machineSelector');
-
-let pendingPunchOut = null;
 
 function showMsg(text, type) {
   msg.textContent = text;
   msg.className = 'msg show ' + type;
 }
 
-// Helper: dateKeyFor - same 7am-7am shift logic as dashboard
-const SHIFT_START_HOUR = 7;
-const FACTORY_UTC_OFFSET_MINUTES = 330;
-
-function dateKeyFor(ts) {
-  const localTs = ts + FACTORY_UTC_OFFSET_MINUTES * 60;
-  const shifted = new Date((localTs - SHIFT_START_HOUR * 3600) * 1000);
-  return shifted.toISOString().slice(0, 10);
-}
-
-// Handle manual machine selection
-document.getElementById('setMachineBtn').addEventListener('click', () => {
-  const selected = document.getElementById('manualMachineSelect').value;
-  if (selected) {
-    window.location.search = '?machine=' + selected;
-  }
-});
-
 if (!machineId) {
-  machineIdDisplay.textContent = 'Select a machine';
-  machineSelector.classList.remove('hidden');
-  showMsg('Please select a machine from the dropdown above.', 'err');
+  machineIdDisplay.textContent = 'Unknown';
+  showMsg('No machine ID found in this QR code. Ask maintenance to reprint it.', 'err');
 } else {
   machineIdDisplay.textContent = machineId;
-  machineSelector.classList.add('hidden');
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -350,21 +271,24 @@ if (!machineId) {
   });
 }
 
+let currentOpData = null;
+
 function watchMachineState() {
   const currentOpRef = ref(db, `Machines/${machineId}/currentOperator`);
   onValue(currentOpRef, (snapshot) => {
     const data = snapshot.val();
+    currentOpData = data;
     if (data && data.operatorId) {
       runningView.classList.remove('hidden');
       loginView.classList.add('hidden');
-      scrapView.classList.add('hidden');
+      punchOutConfirmView.classList.add('hidden');
       runningOpName.textContent = data.name || data.operatorId;
       const since = data.punchInTime ? new Date(data.punchInTime * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
       runningSince.textContent = since ? `Punched in at ${since}` : '';
     } else {
       runningView.classList.add('hidden');
+      punchOutConfirmView.classList.add('hidden');
       loginView.classList.remove('hidden');
-      scrapView.classList.add('hidden');
     }
   });
 }
@@ -390,7 +314,7 @@ document.getElementById('punchInBtn').addEventListener('click', async () => {
       return;
     }
 
-    const punchInTime = Math.floor(Date.now() / 1000);
+    const punchInTime = Math.floor(Date.now() / 1000); // seconds, to match ESP32 timestamps
     const sessionRef = push(ref(db, `Sessions/${machineId}`));
     await set(sessionRef, {
       operatorId,
@@ -414,96 +338,40 @@ document.getElementById('punchInBtn').addEventListener('click', async () => {
   }
 });
 
-// Handle punch out button - show scrap entry
-document.getElementById('punchOutBtn').addEventListener('click', async () => {
+/* ---------- Punch out: step 1, capture scrap qty ---------- */
+document.getElementById('punchOutBtn').addEventListener('click', () => {
+  if (!currentOpData) return;
+  runningView.classList.add('hidden');
+  punchOutConfirmView.classList.remove('hidden');
+  document.getElementById('scrapQty').value = '0';
+});
+
+document.getElementById('cancelPunchOutBtn').addEventListener('click', () => {
+  punchOutConfirmView.classList.add('hidden');
+  runningView.classList.remove('hidden');
+});
+
+/* ---------- Punch out: step 2, finalize ---------- */
+document.getElementById('confirmPunchOutBtn').addEventListener('click', async () => {
   try {
     const currentOpSnap = await get(ref(db, `Machines/${machineId}/currentOperator`));
     const currentOp = currentOpSnap.val();
-    if (!currentOp) {
-      showMsg('No active session found.', 'err');
-      return;
-    }
+    if (!currentOp) return;
 
-    pendingPunchOut = currentOp;
-    scrapView.classList.remove('hidden');
-    scrapQuantity.value = '';
-    scrapQuantity.focus();
-    showMsg('', '');
-    
-  } catch (err) {
-    showMsg('Error: ' + err.message, 'err');
-  }
-});
-
-// Confirm punch out with scrap
-scrapConfirmBtn.addEventListener('click', async () => {
-  await completePunchOut(parseFloat(scrapQuantity.value) || 0);
-});
-
-// Cancel / skip scrap
-scrapCancelBtn.addEventListener('click', async () => {
-  await completePunchOut(0);
-});
-
-scrapQuantity.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    const val = parseFloat(scrapQuantity.value) || 0;
-    completePunchOut(val);
-  }
-});
-
-async function completePunchOut(scrapAmount) {
-  try {
-    const currentOp = pendingPunchOut;
-    if (!currentOp) {
-      showMsg('No active session found.', 'err');
-      return;
-    }
-
+    const scrapQty = parseInt(document.getElementById('scrapQty').value, 10) || 0;
     const punchOutTime = Math.floor(Date.now() / 1000);
 
     if (currentOp.sessionId) {
       await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/punchOut`), punchOutTime);
       await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/status`), 'closed');
-    }
-
-    const sessionSnap = await get(ref(db, `Sessions/${machineId}/${currentOp.sessionId}`));
-    const sessionData = sessionSnap.val();
-
-    if (scrapAmount > 0) {
-      const dateKey = dateKeyFor(sessionData.punchIn || punchOutTime);
-      const scrapRef = push(ref(db, `QualityDefects/${dateKey}/${machineId}`));
-      await set(scrapRef, {
-        defectType: 'Production Scrap',
-        quantity: scrapAmount,
-        productionOperator: sessionData.name || sessionData.operatorId,
-        reportedByName: sessionData.name || sessionData.operatorId,
-        reportedBy: sessionData.operatorId,
-        timestamp: punchOutTime,
-        sessionId: currentOp.sessionId,
-        isScrap: true,
-        coilNo: '',
-        drumNo: ''
-      });
-      
-      showMsg(`✅ Punched out. ${scrapAmount} scrap unit(s) recorded.`, 'ok');
-    } else {
-      showMsg('✅ Punched out. No scrap recorded.', 'ok');
+      await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/scrapQty`), scrapQty);
     }
 
     await set(ref(db, `Machines/${machineId}/currentOperator`), null);
-    scrapView.classList.add('hidden');
-    pendingPunchOut = null;
-    
+    punchOutConfirmView.classList.add('hidden');
+    showMsg('Punched out. Thanks!', 'ok');
   } catch (err) {
     showMsg('Punch out failed: ' + err.message, 'err');
-  }
-}
-
-document.getElementById('pin').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    document.getElementById('punchInBtn').click();
   }
 });
 </script>

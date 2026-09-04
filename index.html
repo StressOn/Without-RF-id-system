@@ -60,6 +60,8 @@
     background: var(--panel); border: 1px dashed var(--line); border-radius: 12px;
     padding: 32px; text-align: center; color: var(--text-dim); font-size: 14px;
   }
+  .summary-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
 </style>
 </head>
 <body>
@@ -82,7 +84,7 @@
   </div>
 </div>
 
-<!-- ================= APP SHELL (shown after login) ================= -->
+<!-- ================= APP SHELL ================= -->
 <div id="appShell">
   <nav class="tabs">
     <div class="tab-links">
@@ -110,16 +112,18 @@
   </div>
 
   <main>
+    <!-- OVERVIEW TAB -->
     <div class="tab-panel active" id="tab-overview">
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Production — All Stations</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Side-by-side comparison, no need to switch the machine selector.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Side-by-side comparison with scrap tracking.</div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
               <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Station</th>
               <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Status</th>
-              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Today</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Today Prod</th>
+              <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Today Scrap</th>
               <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Yesterday</th>
               <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Speed (/min)</th>
             </tr></thead>
@@ -128,7 +132,7 @@
         </div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Staffs — All Stations</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Who's currently punched in, and today's attributed production, per station.</div>
         <div style="overflow-x:auto;">
@@ -145,6 +149,7 @@
       </div>
     </div>
 
+    <!-- PRODUCTION TAB -->
     <div class="tab-panel" id="tab-production">
       <div class="machine-status" id="machineStatusCard" style="display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
         <div class="big-dot" id="statusDot" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;background:#9aa0aa;"></div>
@@ -157,22 +162,24 @@
       <div class="summary-row" id="summaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
       <div class="two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <h2 style="font-size:15px;margin:0 0 4px;">Last 3 Days</h2>
           <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Daily production total.</div>
           <div style="position:relative;height:240px;touch-action:pan-y;"><canvas id="threeDayChart"></canvas></div>
         </div>
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <h2 style="font-size:15px;margin:0 0 4px;">Speed Trend (Today)</h2>
           <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Units per minute, hourly average.</div>
           <div style="position:relative;height:240px;touch-action:pan-y;"><canvas id="speedChart"></canvas></div>
         </div>
       </div>
     </div>
+
+    <!-- STAFFS TAB -->
     <div class="tab-panel" id="tab-staffs">
       <div class="summary-row" id="staffsSummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
           <div>
             <h2 style="font-size:15px;margin:0 0 4px;">Daily Production by Operator</h2>
@@ -187,7 +194,7 @@
         <div style="position:relative;height:260px;touch-action:pan-y;"><canvas id="staffsDailyChart"></canvas></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
           <h2 style="font-size:15px;margin:0;">Operator Totals</h2>
           <button id="staffsDownloadBtn" style="background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">Download Report (.xlsx)</button>
@@ -204,7 +211,7 @@
         </div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel">
         <h2 style="font-size:15px;margin:0 0 16px;">Day-wise Breakdown</h2>
         <div style="max-height:360px;overflow-y:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -218,6 +225,8 @@
         </div>
       </div>
     </div>
+
+    <!-- DOWNTIME TAB -->
     <div class="tab-panel" id="tab-downtime">
       <div class="status-card" id="downtimeStatusCard" style="display:flex;align-items:flex-start;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:24px;">
         <div class="big-dot" id="downtimeStatusDot" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;background:#9aa0aa;margin-top:4px;"></div>
@@ -231,7 +240,7 @@
       <div class="summary-row" id="downtimeSummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
       <div class="two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px;">
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
             <h2 style="font-size:15px;margin:0;">Breakdown by Reason</h2>
             <select id="downtimeRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
@@ -243,14 +252,14 @@
           <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Total minutes lost per reason.</div>
           <div style="position:relative;height:260px;"><canvas id="downtimeReasonChart"></canvas></div>
         </div>
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <h2 style="font-size:15px;margin:0 0 4px;">Daily Downtime Trend</h2>
           <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Minutes per day, stacked by reason.</div>
           <div style="position:relative;height:260px;touch-action:pan-y;"><canvas id="downtimeTrendChart"></canvas></div>
         </div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel">
         <h2 style="font-size:15px;margin:0 0 16px;">Downtime Log</h2>
         <div style="max-height:360px;overflow-y:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -270,11 +279,13 @@
         </div>
       </div>
     </div>
+
+    <!-- QUALITY TAB -->
     <div class="tab-panel" id="tab-quality">
       <div class="summary-row" id="qualitySummaryRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;"></div>
 
       <div class="two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px;">
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
             <h2 style="font-size:15px;margin:0;">Breakdown by Defect Type</h2>
             <select id="qualityRangeSelect" style="background:var(--ink);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;">
@@ -283,17 +294,17 @@
               <option value="90">Last 90 days</option>
             </select>
           </div>
-          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Total rejected quantity per defect type.</div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Total rejected quantity per defect type (includes scrap).</div>
           <div style="position:relative;height:260px;"><canvas id="qualityTypeChart"></canvas></div>
         </div>
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <h2 style="font-size:15px;margin:0 0 4px;">Daily Defect Trend</h2>
           <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Rejected quantity per day, stacked by defect type.</div>
           <div style="position:relative;height:260px;touch-action:pan-y;"><canvas id="qualityTrendChart"></canvas></div>
         </div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
           <h2 style="font-size:15px;margin:0;">Defect Log</h2>
           <button id="qualityDownloadBtn" style="background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">Download Report (.xlsx)</button>
@@ -314,10 +325,12 @@
         </div>
       </div>
     </div>
+
+    <!-- OEE TAB -->
     <div class="tab-panel" id="tab-oee">
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Monthly Target</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Set once per month by the factory owner. Day and week targets below are derived from this automatically and re-balance to catch up or ease off based on actual output - no manual daily entry needed.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Set once per month by the factory owner.</div>
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Month</label>
@@ -332,9 +345,9 @@
         <div id="monthlyTargetMsg" style="margin-top:12px;font-size:13px;color:var(--ok);display:none;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Ideal Speed</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Manual entry, used for the Performance figure in OEE. Machine capability - set once per day, doesn't usually change.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Manual entry, used for the Performance figure in OEE.</div>
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Date</label>
@@ -349,28 +362,28 @@
         <div id="oeeTargetMsg" style="margin-top:12px;font-size:13px;color:var(--ok);display:none;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Daily Target vs Actual - <span id="dailyTargetMonthLabel"></span></h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Target re-balances daily based on how the month is actually going. Dashed line is a forecast for the rest of the month based on the last 7 days' average.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Target re-balances daily based on how the month is actually going.</div>
         <div style="position:relative;height:260px;"><canvas id="dailyTargetChart"></canvas></div>
         <div id="monthForecastNote" style="color:var(--text-dim);font-size:12px;margin-top:12px;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Weekly Rollup - <span id="weeklyTargetMonthLabel"></span></h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Same daily targets grouped into 7-day blocks.</div>
         <div style="position:relative;height:240px;"><canvas id="weeklyRollupChart"></canvas></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Yearly Achievement - <span id="yearlyTargetYearLabel"></span></h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Cumulative actual vs cumulative target across the year. Months with no monthly target set show as a flat line (nothing to compare against).</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Cumulative actual vs cumulative target across the year.</div>
         <div style="position:relative;height:260px;"><canvas id="yearlyAchievementChart"></canvas></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">OEE — Last 3 Days</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Availability × Performance × Quality. Limited to 3 days to keep this tab fast.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Availability × Performance × Quality.</div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr>
@@ -386,18 +399,19 @@
             <tbody id="oeeTableBody"></tbody>
           </table>
         </div>
-        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Days without a saved monthly target show as “—” for Performance/OEE; Availability and Efficiency don't require a target.</div>
+        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Days without a saved monthly target show as "—" for Performance/OEE.</div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel">
         <h2 style="font-size:15px;margin:0 0 4px;">OEE Trend</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Last 3 days only.</div>
         <div style="position:relative;height:240px;"><canvas id="oeeTrendChart"></canvas></div>
       </div>
     </div>
 
+    <!-- ANALYSIS TAB -->
     <div class="tab-panel" id="tab-analysis">
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Filters</h2>
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
           <div style="display:flex;flex-direction:column;gap:6px;">
@@ -426,45 +440,46 @@
             </select>
           </div>
         </div>
-        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Shift filter narrows Target/Actual/Achievement/Shortfall and the day-wise chart to just that shift's actual output. Target itself isn't split by shift, so it stays the full-day figure for context. Machine-wise Production below always compares all 3 machines regardless of the Machine filter - that's its purpose.</div>
+        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">Shift filter narrows Target/Actual/Achievement/Shortfall and the day-wise chart to just that shift's actual output.</div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 16px;">Production Summary</h2>
         <div id="analysisSummaryCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Day-wise Production - Target vs Actual</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:8px;">Each day's target within the selected range, against actual output.</div>
         <div id="analysisTrendBadge" style="display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;margin-bottom:16px;"></div>
         <div style="position:relative;height:260px;"><canvas id="analysisDayChart"></canvas></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Hourly Production Trend</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Total output for each hour of the day (IST), summed across every day in the selected range.</div>
         <div style="position:relative;height:240px;"><canvas id="analysisHourChart"></canvas></div>
         <div id="analysisHourNote" style="color:var(--text-dim);font-size:12px;margin-top:12px;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Shift-wise Production</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">A Shift (7 AM–7 PM) vs B Shift (7 PM–7 AM), for the selected range. Not affected by the Shift filter above - this is the comparison it would otherwise hide.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">A Shift (7 AM–7 PM) vs B Shift (7 PM–7 AM), for the selected range.</div>
         <div style="position:relative;height:200px;"><canvas id="analysisShiftChart"></canvas></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel">
         <h2 style="font-size:15px;margin:0 0 4px;">Machine-wise Production</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">All 3 machines compared for the selected range and shift.</div>
         <div style="position:relative;height:220px;"><canvas id="analysisMachineChart"></canvas></div>
       </div>
     </div>
 
+    <!-- OPERATOR TAB -->
     <div class="tab-panel" id="tab-operator">
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">Select Operator &amp; Month</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Pulls from punch sessions and quality/downtime reports already in the system - see the notes under each section for how each figure is worked out and where it can be approximate.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Pulls from punch sessions and quality/downtime reports already in the system.</div>
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
           <div style="display:flex;flex-direction:column;gap:6px;">
             <label style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);">Operator</label>
@@ -480,52 +495,50 @@
       </div>
 
       <div id="operatorResults" style="display:none;">
-
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div class="panel" style="margin-bottom:24px;">
           <h2 style="font-size:15px;margin:0 0 16px;">Operator Details</h2>
           <div id="operatorDetailsCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;"></div>
         </div>
 
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div class="panel" style="margin-bottom:24px;">
           <h2 style="font-size:15px;margin:0 0 4px;">Attendance</h2>
-          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Present = at least one punch session that day. There's no leave-tracking data source yet, so Leave Days shows 0 and Absent covers every non-present day - see the note below.</div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Present = at least one punch session that day.</div>
           <div id="operatorAttendanceCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;"></div>
-          <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">No separate Leave record exists in the system yet - every day without a punch session counts as Absent. If you want approved leave excluded from Absent, that needs a new Leave entry (happy to add it).</div>
         </div>
 
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div class="panel" style="margin-bottom:24px;">
           <h2 style="font-size:15px;margin:0 0 4px;">Production</h2>
-          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Target here assumes each day's machine target splits evenly between the A and B shift - the system doesn't track a target per shift, so this is a working assumption, not a stored figure.</div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Target assumes each day's machine target splits evenly between A and B shift.</div>
           <div id="operatorProductionCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;"></div>
           <div style="position:relative;height:220px;"><canvas id="operatorDailyChart"></canvas></div>
         </div>
 
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div class="panel" style="margin-bottom:24px;">
           <h2 style="font-size:15px;margin:0 0 4px;">Quality</h2>
-          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Matched by the free-text "Production Operator" name typed on the defect report form, not a reliable ID - a typo or nickname there will under-count.</div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Shows both defects and scrap separately.</div>
           <div id="operatorQualityCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px;"></div>
-          <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">Main defect types:</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-bottom:8px;">Defect types (non-scrap):</div>
           <div id="operatorDefectList" style="font-size:13px;"></div>
         </div>
 
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+        <div class="panel" style="margin-bottom:24px;">
           <h2 style="font-size:15px;margin:0 0 4px;">Downtime</h2>
-          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Matched by a reliable operator ID recorded when downtime was reported - Breakdown Time is Mold Defective + Maintenance only (excludes No Material, which isn't a machine failure).</div>
+          <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Matched by operator ID recorded when downtime was reported.</div>
           <div id="operatorDowntimeCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;"></div>
         </div>
 
-        <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+        <div class="panel">
           <h2 style="font-size:15px;margin:0 0 16px;">Operator Performance Summary</h2>
           <div id="operatorSummaryCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;"></div>
         </div>
-
       </div>
 
       <div id="operatorEmptyState" style="color:var(--text-dim);font-size:13px;padding:20px;">Select an operator and a month to see their performance.</div>
     </div>
 
+    <!-- MIS TAB -->
     <div class="tab-panel" id="tab-mis">
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;justify-content:space-between;">
           <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
             <div style="display:flex;flex-direction:column;gap:6px;">
@@ -536,51 +549,51 @@
           </div>
           <button id="misDownloadBtn" style="background:var(--amber);color:#1a1204;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;">Download Report (.xlsx)</button>
         </div>
-        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">One consolidated snapshot across all 3 machines for the selected day - every figure here comes from the same data as the other tabs, so nothing here should ever disagree with them. This doesn't auto-refresh live like Analysis/OEE - click Refresh after new data comes in, or just reopen this tab.</div>
+        <div style="color:var(--text-dim);font-size:11px;margin-top:12px;">One consolidated snapshot across all 3 machines for the selected day.</div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 16px;">1. Daily Production Summary</h2>
         <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;" id="misProductionTable"></table></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 16px;">2. OEE Summary</h2>
         <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;" id="misOeeTable"></table></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 16px;">3. Downtime Analysis</h2>
         <div id="misDowntimeSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px;"></div>
         <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;" id="misDowntimeTable"></table></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">4. Production Efficiency</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Machines ranked by Achievement % for the day.</div>
         <div id="misEfficiencyRanking" style="font-size:13px;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 16px;">5. Quality Reports</h2>
         <div id="misQualitySummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px;"></div>
         <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;" id="misQualityTable"></table></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 16px;">6. Shift-wise Production (with Operators)</h2>
         <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;" id="misShiftTable"></table></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="panel" style="margin-bottom:24px;">
         <h2 style="font-size:15px;margin:0 0 4px;">7. Management Alerts</h2>
         <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Threshold-based, not a live monitor - things worth someone's attention today.</div>
         <div id="misAlertsList" style="font-size:13px;"></div>
       </div>
 
-      <div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;">
+      <div class="panel">
         <h2 style="font-size:15px;margin:0 0 4px;">8. Action Required</h2>
-        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Same underlying issues as above, framed as what to actually do about them, worst first.</div>
+        <div style="color:var(--text-dim);font-size:12px;margin-bottom:16px;">Same underlying issues as above, framed as what to actually do about them.</div>
         <div id="misActionList" style="font-size:13px;"></div>
       </div>
     </div>
@@ -589,7 +602,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js';
-import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+import { getDatabase, ref, get, set, push, onValue, off } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js';
 
 const firebaseConfig = {
@@ -606,6 +619,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+// ==================== LOGIN ====================
 const loginScreen = document.getElementById('loginScreen');
 const appShell = document.getElementById('appShell');
 const loginBtn = document.getElementById('loginBtn');
@@ -613,9 +627,6 @@ const loginErr = document.getElementById('loginErr');
 const userEmailLabel = document.getElementById('userEmailLabel');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// Gate: only a real (non-anonymous) signed-in user sees the dashboard.
-// This mirrors the database rules - the rules are the actual security
-// boundary, this is just the matching UI behavior.
 onAuthStateChanged(auth, (user) => {
   if (user && user.providerData.length > 0) {
     loginScreen.style.display = 'none';
@@ -631,13 +642,11 @@ loginBtn.addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   loginErr.classList.remove('show');
-
   if (!email || !password) {
     loginErr.textContent = 'Enter your email and password.';
     loginErr.classList.add('show');
     return;
   }
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
@@ -652,7 +661,7 @@ document.getElementById('loginPassword').addEventListener('keydown', (e) => {
 
 logoutBtn.addEventListener('click', () => signOut(auth));
 
-// ---- Tab switching ----
+// ==================== TAB SWITCHING ====================
 document.querySelectorAll('nav.tabs a[data-tab]').forEach(link => {
   link.addEventListener('click', () => {
     document.querySelectorAll('nav.tabs a[data-tab]').forEach(a => a.classList.remove('active'));
@@ -664,13 +673,6 @@ document.querySelectorAll('nav.tabs a[data-tab]').forEach(link => {
   });
 });
 
-// Charts are only created once, the first time their data arrives - if that
-// happens while their tab is still display:none (e.g. Production/Staffs/
-// Downtime charts building in the background while Overview is the visible
-// tab on load), Chart.js lays them out at 0 width. They then sit invisible/
-// squashed until something nudges a resize, which can look like part of the
-// "flicker" the first time a tab is opened. Force a resize on the charts
-// belonging to whichever tab just became visible.
 function resizeChartsForTab(tab) {
   const chartsByTab = {
     production: [threeDayChart, speedChart],
@@ -684,22 +686,80 @@ function resizeChartsForTab(tab) {
   (chartsByTab[tab] || []).forEach(c => { if (c) c.resize(); });
 }
 
-/* =========================================================
-   PRODUCTION TAB
-   Ported from production.html. Uses the shared machine
-   selector above the tabs. Status/speed are computed from
-   existing Sensor events + Machines heartbeat - no firmware
-   changes needed.
-   ========================================================= */
-import { ref as dbRef, onValue as dbOnValue, off as dbOff, set as dbSet } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
-
+// ==================== CONSTANTS ====================
 const OFFLINE_AFTER_SEC = 120;
 const IDLE_AFTER_SEC = 300;
-const SPEED_WINDOW_SEC = 120; // was 600 (10 min) - too slow to reflect real changes; 2 min balances responsiveness vs noise
+const SPEED_WINDOW_SEC = 120;
+const SHIFT_START_HOUR = 7;
+const FACTORY_UTC_OFFSET_MINUTES = 330;
+const ANALYSIS_MACHINES = ['M01-A', 'M01-B', 'M01-C'];
 
+function dateKeyFor(ts) {
+  const localTs = ts + FACTORY_UTC_OFFSET_MINUTES * 60;
+  const shifted = new Date((localTs - SHIFT_START_HOUR * 3600) * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function fmtInt(v) { return v == null ? '—' : Math.round(v).toLocaleString(); }
+function fmtPct(v) { return v == null ? '—' : (v * 100).toFixed(1) + '%'; }
+function fmtNum(v) { return v == null ? '—' : v.toFixed(1); }
+function fmtClock(ts) { return ts ? new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'; }
+function fmtPersonNameId(name, id) {
+  const n = name || id || '—';
+  if (!n || n === '—') return '—';
+  return id && id !== n ? `${escapeHtml(n)} <span style="color:var(--text-dim);">(${escapeHtml(id)})</span>` : escapeHtml(n);
+}
+
+function daysInMonth(year, month) { return new Date(year, month, 0).getDate(); }
+
+function badgeColorFor(pct, goodMin, okMin) {
+  if (pct == null) return 'var(--text-dim)';
+  if (pct >= goodMin) return 'var(--ok)';
+  if (pct >= okMin) return 'var(--warn)';
+  return 'var(--err)';
+}
+
+function statCard(label, value, sub, color) {
+  return `
+    <div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">${label}</div>
+      <div style="font-size:20px;font-weight:700;${color ? `color:${color};` : ''}">${value}</div>
+      ${sub ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${sub}</div>` : ''}
+    </div>`;
+}
+
+// ==================== SCRAP HELPER ====================
+function getScrapForMachineAndDate(machineId, dateKey) {
+  const defects = rawQualitySnapshot[dateKey] || {};
+  const machineDefects = defects[machineId] || {};
+  let totalScrap = 0;
+  Object.values(machineDefects).forEach(d => {
+    if (d.isScrap === true) {
+      totalScrap += d.quantity || 0;
+    }
+  });
+  return totalScrap;
+}
+
+function getScrapForMachineAndMonth(machineId, yearMonth) {
+  let total = 0;
+  const nDays = daysInMonth(parseInt(yearMonth.slice(0,4)), parseInt(yearMonth.slice(5,7)));
+  for (let d = 1; d <= nDays; d++) {
+    const dateStr = `${yearMonth}-${String(d).padStart(2, '0')}`;
+    total += getScrapForMachineAndDate(machineId, dateStr);
+  }
+  return total;
+}
+
+// ==================== PRODUCTION TAB ====================
 const machineSelect = document.getElementById('machineSelect');
 let currentMachine = null;
-let previousMachine = null; // tracked so we can detach that machine's listeners on switch
+let previousMachine = null;
 let currentEvents = {};
 let lastSeen = null;
 let threeDayChart = null;
@@ -707,7 +767,7 @@ let speedChart = null;
 let tickTimer = null;
 
 function loadMachineList() {
-  dbOnValue(dbRef(db, 'Machines'), (snap) => {
+  onValue(ref(db, 'Machines'), (snap) => {
     const data = snap.val() || {};
     const machineIds = Object.keys(data);
     machineSelect.innerHTML = '';
@@ -735,71 +795,114 @@ machineSelect.addEventListener('change', () => {
 });
 
 function subscribeToMachine(machineId) {
-  // Detach every listener tied to the PREVIOUSLY selected machine first.
-  // Without this, switching machines leaves old listeners running - and if
-  // that old machine's data ever changes (including being deleted), it can
-  // fire again and overwrite the new machine's data in these shared
-  // variables. This is what caused Staffs to show everything as
-  // "Unassigned" after switching away from the old M01 entry.
   if (previousMachine && previousMachine !== machineId) {
-    dbOff(dbRef(db, `Machines/${previousMachine}/lastSeen`));
-    dbOff(dbRef(db, `Sensor/${previousMachine}/events`));
-    dbOff(dbRef(db, `Sessions/${previousMachine}`));
-    dbOff(dbRef(db, `DowntimeActive/${previousMachine}`));
+    off(ref(db, `Machines/${previousMachine}/lastSeen`));
+    off(ref(db, `Sensor/${previousMachine}/events`));
+    off(ref(db, `Sessions/${previousMachine}`));
+    off(ref(db, `DowntimeActive/${previousMachine}`));
   }
   previousMachine = machineId;
 
-  dbOnValue(dbRef(db, `Machines/${machineId}/lastSeen`), (snap) => {
+  onValue(ref(db, `Machines/${machineId}/lastSeen`), (snap) => {
     lastSeen = snap.val();
     renderStatus();
   });
-  dbOnValue(dbRef(db, `Sensor/${machineId}/events`), (snap) => {
+  onValue(ref(db, `Sensor/${machineId}/events`), (snap) => {
     currentEvents = snap.val() || {};
     debouncedRenderProductionAll();
   });
   if (tickTimer) clearInterval(tickTimer);
-  tickTimer = setInterval(() => { renderStatus(); renderSummary(); }, 5000); // was 15000 - faster refresh for a more live feel
+  tickTimer = setInterval(() => { renderStatus(); renderSummary(); renderDowntimeStatus(); }, 5000);
 }
 
-// A large event history (thousands of records) can arrive from Firebase as
-// several rapid successive snapshots rather than one clean update - each one
-// triggering a full chart destroy+rebuild looks like "blinking" on open.
-// This coalesces bursts of updates into a single render, 400ms after the
-// last one lands, so charts settle once cleanly instead of flickering
-// through partial states.
+function eventList() {
+  return Object.values(currentEvents).filter(e => e && typeof e.timestamp === 'number');
+}
+
+function sumForDate(events, dateKey) {
+  return events.filter(e => dateKeyFor(e.timestamp) === dateKey).reduce((a, e) => a + e.count, 0);
+}
+
+function computeLiveMachineStatus() {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const events = eventList();
+  const lastEventTs = events.length ? Math.max(...events.map(e => e.timestamp)) : null;
+  const mostRecentSignal = Math.max(lastSeen || 0, lastEventTs || 0);
+  if (mostRecentSignal === 0 || (nowSec - mostRecentSignal) > OFFLINE_AFTER_SEC) {
+    return {
+      label: 'Offline', color: 'var(--text-dim)',
+      note: mostRecentSignal ? `No signal for ${Math.round((nowSec - mostRecentSignal) / 60)} min` : 'No signal received yet'
+    };
+  }
+  const secSinceLastEvent = lastEventTs ? nowSec - lastEventTs : Infinity;
+  if (secSinceLastEvent <= IDLE_AFTER_SEC) {
+    return { label: 'Running', color: 'var(--ok)', note: `Last unit ${secSinceLastEvent}s ago` };
+  }
+  return {
+    label: 'Idle', color: 'var(--warn)',
+    note: lastEventTs ? `No production for ${Math.round(secSinceLastEvent / 60)} min` : 'No production recorded yet'
+  };
+}
+
+function renderStatus() {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  const note = document.getElementById('statusNote');
+  if (!dot) return;
+  const s = computeLiveMachineStatus();
+  dot.style.background = s.color;
+  text.textContent = s.label;
+  note.textContent = s.note;
+}
+
+function renderSummary() {
+  const summaryRow = document.getElementById('summaryRow');
+  if (!summaryRow) return;
+  const events = eventList();
+  const nowSec = Math.floor(Date.now() / 1000);
+  const today = dateKeyFor(nowSec);
+  const yesterday = dateKeyFor(nowSec - 86400);
+  const monthPrefix = today.slice(0, 7);
+
+  const todayTotal = sumForDate(events, today);
+  const yesterdayTotal = sumForDate(events, yesterday);
+  const monthTotal = events.filter(e => dateKeyFor(e.timestamp).startsWith(monthPrefix)).reduce((a, e) => a + e.count, 0);
+  const todayScrap = getScrapForMachineAndDate(currentMachine, today);
+
+  const speedWindowEvents = events.filter(e => nowSec - e.timestamp <= SPEED_WINDOW_SEC);
+  const speedWindowTotal = speedWindowEvents.reduce((a, e) => a + e.count, 0);
+  const currentSpeed = (speedWindowTotal / (SPEED_WINDOW_SEC / 60)).toFixed(2);
+
+  summaryRow.innerHTML = `
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Today's Production</div>
+      <div style="font-size:26px;font-weight:700;">${todayTotal.toFixed(1)}</div>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Today's Scrap</div>
+      <div style="font-size:26px;font-weight:700;color:var(--err);">${todayScrap.toFixed(1)}</div>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Yesterday's Production</div>
+      <div style="font-size:26px;font-weight:700;">${yesterdayTotal.toFixed(1)}</div>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">This Month</div>
+      <div style="font-size:26px;font-weight:700;">${monthTotal.toFixed(1)}</div>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Current Speed</div>
+      <div style="font-size:26px;font-weight:700;">${currentSpeed}<span style="font-size:13px;color:var(--text-dim)"> /min</span></div>
+    </div>
+  `;
+}
+
 let productionRenderDebounceTimer = null;
 function debouncedRenderProductionAll() {
   if (productionRenderDebounceTimer) clearTimeout(productionRenderDebounceTimer);
   productionRenderDebounceTimer = setTimeout(() => {
     renderProductionAll();
   }, 400);
-}
-
-function eventList() {
-  return Object.values(currentEvents).filter(e => e && typeof e.timestamp === 'number');
-}
-// Shift-based "day" boundary: your factory's shift runs 7am to next 7am
-// LOCAL TIME, not calendar midnight to midnight, and not UTC.
-//
-// BUG FIX: the previous version subtracted 7 hours and then called
-// toISOString(), but toISOString() ALWAYS returns UTC regardless of the
-// browser's timezone - so the boundary actually landed at UTC 07:00,
-// which is 12:30pm in India (UTC+5:30), not 7:00am. Nearly 5.5 hours of
-// real morning-shift production was being counted into the wrong day.
-//
-// Fixed by explicitly converting to the factory's local time (IST is
-// hardcoded here rather than relying on the viewing device's own
-// timezone setting, so the numbers are correct and consistent no matter
-// what device/timezone someone opens this dashboard from).
-const SHIFT_START_HOUR = 7;
-const FACTORY_UTC_OFFSET_MINUTES = 330; // IST = UTC+5:30. Change this if the factory is in a different timezone.
-function dateKeyFor(ts) {
-  const localTs = ts + FACTORY_UTC_OFFSET_MINUTES * 60; // shift the timestamp into factory-local time first
-  const shifted = new Date((localTs - SHIFT_START_HOUR * 3600) * 1000);
-  return shifted.toISOString().slice(0, 10); // now safe to use toISOString - the timestamp has already been localized
-}
-function sumForDate(events, dateKey) {
-  return events.filter(e => dateKeyFor(e.timestamp) === dateKey).reduce((a, e) => a + e.count, 0);
 }
 
 function renderProductionAll() {
@@ -809,112 +912,25 @@ function renderProductionAll() {
   renderSpeedChart();
 }
 
-function renderStatus() {
-  const nowSec = Math.floor(Date.now() / 1000);
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  const note = document.getElementById('statusNote');
-  if (!dot) return;
-
-  const events = eventList();
-  const lastEventTs = events.length ? Math.max(...events.map(e => e.timestamp)) : null;
-
-  // BUG FIX: previously this checked ONLY the heartbeat (lastSeen) to decide
-  // Offline, before ever looking at events - so a machine that was actively
-  // producing (fresh events) but had a merely-stale heartbeat (heartbeat only
-  // updates every 30s on the device, plus normal network jitter) would show
-  // as "Offline" for up to OFFLINE_AFTER_SEC even while clearly running.
-  // Now: only actually offline if BOTH signals are stale.
-  const mostRecentSignal = Math.max(lastSeen || 0, lastEventTs || 0);
-  if (mostRecentSignal === 0 || (nowSec - mostRecentSignal) > OFFLINE_AFTER_SEC) {
-    dot.style.background = 'var(--text-dim)';
-    text.textContent = 'Offline';
-    note.textContent = mostRecentSignal ? `No signal for ${Math.round((nowSec - mostRecentSignal) / 60)} min` : 'No signal received yet';
-    return;
-  }
-
-  const secSinceLastEvent = lastEventTs ? nowSec - lastEventTs : Infinity;
-  if (secSinceLastEvent <= IDLE_AFTER_SEC) {
-    dot.style.background = 'var(--ok)';
-    text.textContent = 'Running';
-    note.textContent = `Last unit ${secSinceLastEvent}s ago`;
-  } else {
-    dot.style.background = 'var(--warn)';
-    text.textContent = 'Idle';
-    note.textContent = lastEventTs ? `No production for ${Math.round(secSinceLastEvent / 60)} min` : 'No production recorded yet';
-  }
-}
-
-function renderSummary() {
-  const summaryRow = document.getElementById('summaryRow');
-  if (!summaryRow) return;
-  const events = eventList();
-  const nowSec = Math.floor(Date.now() / 1000);
-  const today = dateKeyFor(nowSec); // shift-aware: 7am-7am, not calendar midnight
-  const yesterday = dateKeyFor(nowSec - 86400);
-  const monthPrefix = today.slice(0, 7);
-
-  const todayTotal = sumForDate(events, today);
-  const yesterdayTotal = sumForDate(events, yesterday);
-  const monthTotal = events.filter(e => dateKeyFor(e.timestamp).startsWith(monthPrefix)).reduce((a, e) => a + e.count, 0);
-
-  const speedWindowEvents = events.filter(e => nowSec - e.timestamp <= SPEED_WINDOW_SEC);
-  const speedWindowTotal = speedWindowEvents.reduce((a, e) => a + e.count, 0);
-  const currentSpeed = (speedWindowTotal / (SPEED_WINDOW_SEC / 60)).toFixed(2);
-
-  summaryRow.innerHTML = `
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
-      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Today's Production</div>
-      <div style="font-size:26px;font-weight:700;">${todayTotal.toFixed(1)}</div>
-    </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
-      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Yesterday's Production</div>
-      <div style="font-size:26px;font-weight:700;">${yesterdayTotal.toFixed(1)}</div>
-    </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
-      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">This Month</div>
-      <div style="font-size:26px;font-weight:700;">${monthTotal.toFixed(1)}</div>
-      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${events.length > 3000 ? 'Large history - may take a moment to load' : ''}</div>
-    </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
-      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Current Speed</div>
-      <div style="font-size:26px;font-weight:700;">${currentSpeed}<span style="font-size:13px;color:var(--text-dim)"> /min</span></div>
-    </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
-      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Target Line Speed</div>
-      <div style="font-size:26px;font-weight:700;">${(currentTargets[today] && currentTargets[today].idealSpeed != null) ? currentTargets[today].idealSpeed : '—'}<span style="font-size:13px;color:var(--text-dim)"> /min</span></div>
-      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Set on the OEE tab</div>
-    </div>
-  `;
-}
-
 function renderThreeDayChart() {
   const canvas = document.getElementById('threeDayChart');
   if (!canvas) return;
   const events = eventList();
+  const DAYS_OF_HISTORY = 14;
   const labels = [];
   const data = [];
-  const DAYS_OF_HISTORY = 14; // more than 3 days loaded so there's room to pan backward
   for (let i = DAYS_OF_HISTORY - 1; i >= 0; i--) {
     const d = dateKeyFor(Math.floor(Date.now() / 1000) - i * 86400);
     labels.push(d);
     data.push(sumForDate(events, d));
   }
-  // Update in place instead of destroy()+new Chart() whenever possible.
-  // destroy()+recreate rebuilds the chart from nothing every render, which
-  // (with Chart.js's default ~1000ms animation) makes every render visibly
-  // "pop in" from empty - on a page where events stream in continuously,
-  // that repeated pop-in is what reads as flicker. A 400ms debounce only
-  // reduces how OFTEN this happens; it doesn't stop each occurrence from
-  // being visible. Updating the existing instance's data avoids the
-  // teardown/rebuild and the animation entirely.
   if (threeDayChart) {
     threeDayChart.data.labels = labels;
     threeDayChart.data.datasets[0].data = data;
     threeDayChart.options.scales.x.min = labels[Math.max(0, labels.length - 3)];
     threeDayChart.options.scales.x.max = labels[labels.length - 1];
     threeDayChart.options.plugins.zoom.limits.x.max = labels.length - 1;
-    threeDayChart.update('none'); // 'none' = apply instantly, no transition animation
+    threeDayChart.update('none');
     return;
   }
   const ctx = canvas.getContext('2d');
@@ -924,7 +940,7 @@ function renderThreeDayChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: false, // avoid a visible fade/grow-in on first render too
+      animation: false,
       plugins: {
         legend: { display: false },
         zoom: {
@@ -935,7 +951,7 @@ function renderThreeDayChart() {
       },
       scales: {
         x: {
-          min: labels[Math.max(0, labels.length - 3)], // default view: latest 3 days, pan left for more
+          min: labels[Math.max(0, labels.length - 3)],
           max: labels[labels.length - 1],
           grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
         },
@@ -950,12 +966,8 @@ function renderSpeedChart() {
   if (!canvas) return;
   const events = eventList();
   const nowSec = Math.floor(Date.now() / 1000);
-  const DAYS_OF_HOURLY_HISTORY = 3; // 72 hourly buckets loaded so there's room to pan backward
+  const DAYS_OF_HOURLY_HISTORY = 3;
   const totalHours = DAYS_OF_HOURLY_HISTORY * 24;
-
-  // Build hourly buckets going back totalHours from now, each bucket keyed
-  // by its own real timestamp range (not just "hour of day") so multiple
-  // days don't collide into the same 24 slots.
   const bucketStartSec = nowSec - (nowSec % 3600) - (totalHours - 1) * 3600;
   const hourlyTotals = new Array(totalHours).fill(0);
   const labels = [];
@@ -997,7 +1009,7 @@ function renderSpeedChart() {
       },
       scales: {
         x: {
-          min: labels[Math.max(0, labels.length - 24)], // default view: latest 24h, pan left for more
+          min: labels[Math.max(0, labels.length - 24)],
           max: labels[labels.length - 1],
           grid: { color: '#33383f' }, ticks: { color: '#9aa0aa', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
         },
@@ -1007,30 +1019,15 @@ function renderSpeedChart() {
   });
 }
 
-// Start loading machine data once a supervisor is logged in
-onAuthStateChanged(auth, (user) => {
-  if (user && user.providerData.length > 0) {
-    loadMachineList();
-    loadOperatorNames();
-  }
-});
-
-/* =========================================================
-   STAFFS TAB
-   Ported from dashboard.html. Allocates raw Sensor events to
-   operators by matching each event's timestamp against
-   Sessions[machineId] punchIn/punchOut windows. Events with
-   no matching session are shown separately as "Unassigned"
-   rather than dropped.
-   ========================================================= */
+// ==================== STAFFS TAB ====================
 let currentSessions = {};
 let operatorNames = {};
 let staffsChart = null;
 let lastAllocation = null;
-
 let rawOperators = {};
+
 function loadOperatorNames() {
-  dbOnValue(dbRef(db, 'Operators'), (snap) => {
+  onValue(ref(db, 'Operators'), (snap) => {
     operatorNames = {};
     rawOperators = snap.val() || {};
     Object.keys(rawOperators).forEach(id => { operatorNames[id] = rawOperators[id].name || id; });
@@ -1049,12 +1046,10 @@ function populateOperatorSelect() {
   if (ids.includes(currentValue)) sel.value = currentValue;
 }
 
-// Hook into the same machine subscription used by Production,
-// adding a Sessions listener alongside it.
 const _originalSubscribeToMachine = subscribeToMachine;
 subscribeToMachine = function (machineId) {
   _originalSubscribeToMachine(machineId);
-  dbOnValue(dbRef(db, `Sessions/${machineId}`), (snap) => {
+  onValue(ref(db, `Sessions/${machineId}`), (snap) => {
     currentSessions = snap.val() || {};
     debouncedRenderStaffsAll();
   });
@@ -1081,8 +1076,7 @@ function colorFor(operatorId) {
 function allocate(eventsObj, sessionsObj, rangeDays) {
   const nowSec = Math.floor(Date.now() / 1000);
   const cutoffSec = nowSec - rangeDays * 86400;
-
-  const sessions = Object.entries(sessionsObj)
+  const sessions = Object.entries(sessionsObj || {})
     .map(([key, s]) => ({
       key, operatorId: s.operatorId,
       name: s.name || operatorNames[s.operatorId] || s.operatorId,
@@ -1090,12 +1084,10 @@ function allocate(eventsObj, sessionsObj, rangeDays) {
     }))
     .filter(s => s.punchIn >= cutoffSec)
     .sort((a, b) => a.punchIn - b.punchIn);
-
-  const events = Object.values(eventsObj).filter(e => e.timestamp >= cutoffSec);
+  const events = Object.values(eventsObj || {}).filter(e => e.timestamp >= cutoffSec);
   const operatorTotals = {};
   const dailyByOperator = {};
   let unassignedTotal = 0;
-
   events.forEach(ev => {
     const match = sessions.find(s => ev.timestamp >= s.punchIn && ev.timestamp <= s.punchOut);
     const dateKey = dateKeyFor(ev.timestamp);
@@ -1110,7 +1102,6 @@ function allocate(eventsObj, sessionsObj, rangeDays) {
       dailyByOperator[dateKey]['Unassigned'] = (dailyByOperator[dateKey]['Unassigned'] || 0) + ev.count;
     }
   });
-
   return { operatorTotals, dailyByOperator, unassignedTotal, totalEvents: events.length, sessionCount: sessions.length };
 }
 
@@ -1128,19 +1119,19 @@ function renderStaffsAll() {
 function renderStaffsSummary(result) {
   const totalProduction = Object.values(result.operatorTotals).reduce((a, o) => a + o.total, 0) + result.unassignedTotal;
   document.getElementById('staffsSummaryRow').innerHTML = `
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Production</div>
       <div style="font-size:26px;font-weight:700;">${totalProduction.toFixed(1)}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Active Operators</div>
       <div style="font-size:26px;font-weight:700;">${Object.keys(result.operatorTotals).length}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Punch Sessions</div>
       <div style="font-size:26px;font-weight:700;">${result.sessionCount}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Unassigned</div>
       <div style="font-size:26px;font-weight:700;color:var(--err);">${result.unassignedTotal.toFixed(1)}</div>
     </div>
@@ -1196,8 +1187,6 @@ function renderStaffsChart(result) {
     data: dates.map(d => result.dailyByOperator[d][id] || 0),
     backgroundColor: colorFor(id)
   }));
-  // Number of datasets (operators) can change between renders, so reassign
-  // the whole datasets array rather than mutating individual entries.
   if (staffsChart) {
     staffsChart.data.labels = dates;
     staffsChart.data.datasets = datasets;
@@ -1218,7 +1207,7 @@ function renderStaffsChart(result) {
       scales: {
         x: {
           stacked: true,
-          min: dates[Math.max(0, dates.length - 3)], // default view: latest 3 days, pan left for the rest of the selected range
+          min: dates[Math.max(0, dates.length - 3)],
           max: dates[dates.length - 1],
           grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
         },
@@ -1251,22 +1240,14 @@ document.getElementById('staffsDownloadBtn').addEventListener('click', () => {
   XLSX.writeFile(workbook, `${currentMachine}_production_by_operator.xlsx`);
 });
 
-/* =========================================================
-   DOWNTIME TAB
-   Live status comes from DowntimeActive/{machine} (set by
-   report.html when someone reports a downtime, cleared when
-   resolved). Historical breakdown/trend/log comes from the
-   archived Downtime/{date}/{machine}/{pushId} records created
-   when a downtime is resolved.
-   ========================================================= */
+// ==================== DOWNTIME TAB ====================
 const REASON_LABELS = { noMaterial: 'No Material', moldDefective: 'Mold Defective', maintenance: 'Maintenance' };
 const REASON_COLORS = { noMaterial: '#e0b23a', moldDefective: '#e2564f', maintenance: '#9aa0aa' };
 
 let currentDowntimeActive = null;
-let currentDowntimeHistory = {}; // { date: { machineId: { pushId: record } } } for the selected machine only
+let currentDowntimeHistory = {};
 let downtimeReasonChart = null;
 let downtimeTrendChart = null;
-
 let downtimeRootSubscribed = false;
 let rawDowntimeSnapshot = {};
 
@@ -1284,25 +1265,18 @@ const _prevSubscribeToMachine = subscribeToMachine;
 subscribeToMachine = function (machineId) {
   _prevSubscribeToMachine(machineId);
 
-  dbOnValue(dbRef(db, `DowntimeActive/${machineId}`), (snap) => {
+  onValue(ref(db, `DowntimeActive/${machineId}`), (snap) => {
     currentDowntimeActive = snap.val();
     renderDowntimeStatus();
   });
 
-  // Subscribed once, not once per machine switch. Filters by whatever
-  // currentMachine IS at the moment data arrives, rather than the machineId
-  // this particular call started with - that stale-closure pattern is
-  // exactly what caused the earlier cross-machine data contamination bug.
   if (!downtimeRootSubscribed) {
     downtimeRootSubscribed = true;
-    dbOnValue(dbRef(db, 'Downtime'), (snap) => {
+    onValue(ref(db, 'Downtime'), (snap) => {
       rawDowntimeSnapshot = snap.val() || {};
       recomputeDowntimeHistoryForCurrentMachine();
     });
   } else {
-    // Root listener already attached from a previous machine - re-filter
-    // the cached snapshot for the newly selected machine immediately,
-    // rather than waiting for Downtime data to next change.
     recomputeDowntimeHistoryForCurrentMachine();
   }
 };
@@ -1332,9 +1306,10 @@ function renderDowntimeStatus() {
       }
     }
   } else {
-    dot.style.background = 'var(--ok)';
-    text.textContent = 'Running';
-    note.textContent = 'No active downtime reported.';
+    const s = computeLiveMachineStatus();
+    dot.style.background = s.color;
+    text.textContent = s.label;
+    note.textContent = s.label === 'Running' ? 'No active downtime reported.' : `${s.note} - no downtime reported for this.`;
     if (descBox) descBox.style.display = 'none';
   }
 }
@@ -1343,7 +1318,6 @@ function flattenDowntimeRecords(rangeDays) {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - rangeDays);
   const cutoffKey = cutoff.toISOString().slice(0, 10);
-
   const records = [];
   Object.keys(currentDowntimeHistory).forEach(date => {
     if (date < cutoffKey) return;
@@ -1372,19 +1346,19 @@ function renderDowntimeSummary(records) {
   const avgPerDay = totalMinutes / days;
 
   document.getElementById('downtimeSummaryRow').innerHTML = `
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Downtime</div>
       <div style="font-size:26px;font-weight:700;">${totalMinutes} min</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Most Common Reason</div>
       <div style="font-size:20px;font-weight:700;">${topReason ? REASON_LABELS[topReason[0]] || topReason[0] : '—'}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Avg per Day</div>
       <div style="font-size:26px;font-weight:700;">${avgPerDay.toFixed(1)} min</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Incidents</div>
       <div style="font-size:26px;font-weight:700;">${records.length}</div>
     </div>
@@ -1426,8 +1400,6 @@ function renderDowntimeTrendChart(records) {
     backgroundColor: REASON_COLORS[reason]
   }));
 
-  // Reason set is fixed (noMaterial/moldDefective/maintenance) so dataset
-  // count never changes here, but reassign the whole array for consistency.
   if (downtimeTrendChart) {
     downtimeTrendChart.data.labels = dates;
     downtimeTrendChart.data.datasets = datasets;
@@ -1448,7 +1420,7 @@ function renderDowntimeTrendChart(records) {
       scales: {
         x: {
           stacked: true,
-          min: dates[Math.max(0, dates.length - 7)], // default view: latest week, pan for more
+          min: dates[Math.max(0, dates.length - 7)],
           max: dates[dates.length - 1],
           grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' }
         },
@@ -1464,21 +1436,6 @@ function renderDowntimeTrendChart(records) {
       }
     }
   });
-}
-
-function escapeHtml(str) {
-  if (str === null || str === undefined) return '';
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function fmtPersonNameId(name, id) {
-  const n = name || id || '—';
-  if (!n || n === '—') return '—';
-  return id && id !== n ? `${escapeHtml(n)} <span style="color:var(--text-dim);">(${escapeHtml(id)})</span>` : escapeHtml(n);
-}
-
-function fmtClock(ts) {
-  return ts ? new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
 }
 
 function renderDowntimeLog(records) {
@@ -1504,16 +1461,11 @@ function renderDowntimeLog(records) {
   `).join('');
 }
 
-/* =========================================================
-   QUALITY TAB
-   Records come from QualityDefects/{date}/{machine}/{pushId},
-   written by report.html's Quality Defect form. Same date-keyed
-   archive pattern as Downtime, so it's wired up the same way.
-   ========================================================= */
+// ==================== QUALITY TAB ====================
 const DEFECT_COLORS = ['#e2564f', '#f2a541', '#e0b23a', '#3fb27f', '#5aa9e6', '#a389d4', '#9aa0aa'];
 function colorForDefect(type, index) { return DEFECT_COLORS[index % DEFECT_COLORS.length]; }
 
-let currentQualityHistory = {}; // { date: { pushId: record } } for the selected machine only
+let currentQualityHistory = {};
 let qualityTypeChart = null;
 let qualityTrendChart = null;
 let qualityRootSubscribed = false;
@@ -1536,7 +1488,7 @@ subscribeToMachine = function (machineId) {
 
   if (!qualityRootSubscribed) {
     qualityRootSubscribed = true;
-    dbOnValue(dbRef(db, 'QualityDefects'), (snap) => {
+    onValue(ref(db, 'QualityDefects'), (snap) => {
       rawQualitySnapshot = snap.val() || {};
       recomputeQualityHistoryForCurrentMachine();
     });
@@ -1551,7 +1503,6 @@ function flattenQualityRecords(rangeDays) {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - rangeDays);
   const cutoffKey = cutoff.toISOString().slice(0, 10);
-
   const records = [];
   Object.keys(currentQualityHistory).forEach(date => {
     if (date < cutoffKey) return;
@@ -1574,26 +1525,39 @@ function renderQualityAll() {
 
 function renderQualitySummary(records) {
   const totalQty = records.reduce((a, r) => a + (r.quantity || 0), 0);
+  const scrapQty = records.filter(r => r.isScrap === true).reduce((a, r) => a + (r.quantity || 0), 0);
+  const defectQty = totalQty - scrapQty;
   const byType = {};
-  records.forEach(r => { byType[r.defectType] = (byType[r.defectType] || 0) + (r.quantity || 0); });
+  records.forEach(r => { 
+    const key = r.isScrap === true ? '🔄 Scrap' : r.defectType;
+    byType[key] = (byType[key] || 0) + (r.quantity || 0); 
+  });
   const topType = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
   const days = new Set(records.map(r => r.date)).size || 1;
   const avgPerDay = totalQty / days;
 
   document.getElementById('qualitySummaryRow').innerHTML = `
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Total Rejected</div>
       <div style="font-size:26px;font-weight:700;">${totalQty}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
-      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Most Common Defect</div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Scrap</div>
+      <div style="font-size:26px;font-weight:700;color:var(--err);">${scrapQty}</div>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Defects (non-scrap)</div>
+      <div style="font-size:26px;font-weight:700;">${defectQty}</div>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Most Common</div>
       <div style="font-size:20px;font-weight:700;">${topType ? topType[0] : '—'}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Avg per Day</div>
       <div style="font-size:26px;font-weight:700;">${avgPerDay.toFixed(1)}</div>
     </div>
-    <div class="summary-card" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;">
+    <div class="summary-card">
       <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Incidents</div>
       <div style="font-size:26px;font-weight:700;">${records.length}</div>
     </div>
@@ -1604,7 +1568,10 @@ function renderQualityTypeChart(records) {
   const canvas = document.getElementById('qualityTypeChart');
   if (!canvas) return;
   const byType = {};
-  records.forEach(r => { byType[r.defectType] = (byType[r.defectType] || 0) + (r.quantity || 0); });
+  records.forEach(r => { 
+    const key = r.isScrap === true ? '🔄 Scrap' : r.defectType;
+    byType[key] = (byType[key] || 0) + (r.quantity || 0); 
+  });
   const types = Object.keys(byType);
   const labels = types;
   const data = Object.values(byType);
@@ -1629,10 +1596,10 @@ function renderQualityTrendChart(records) {
   const canvas = document.getElementById('qualityTrendChart');
   if (!canvas) return;
   const dates = Array.from(new Set(records.map(r => r.date))).sort();
-  const types = Array.from(new Set(records.map(r => r.defectType)));
+  const types = Array.from(new Set(records.map(r => r.isScrap === true ? '🔄 Scrap' : r.defectType)));
   const datasets = types.map((type, i) => ({
     label: type,
-    data: dates.map(d => records.filter(r => r.date === d && r.defectType === type).reduce((a, r) => a + (r.quantity || 0), 0)),
+    data: dates.map(d => records.filter(r => (r.isScrap === true ? '🔄 Scrap' : r.defectType) === type).reduce((a, r) => a + (r.quantity || 0), 0)),
     backgroundColor: colorForDefect(type, i)
   }));
 
@@ -1685,7 +1652,7 @@ function renderQualityLog(records) {
   body.innerHTML = sorted.map(r => `
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.date}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.defectType)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.isScrap === true ? '🔄 Scrap' : escapeHtml(r.defectType)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.quantity || 0}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.coilNo) || '—'}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${escapeHtml(r.drumNo) || '—'}</td>
@@ -1700,7 +1667,7 @@ document.getElementById('qualityDownloadBtn').addEventListener('click', () => {
   const rows = lastQualityRecords.map(r => ({
     Date: r.date,
     Machine: currentMachine,
-    'Defect Type': r.defectType,
+    'Defect Type': r.isScrap === true ? 'Scrap' : r.defectType,
     Quantity: r.quantity || 0,
     'Coil No': r.coilNo || '',
     'Drum No': r.drumNo || '',
@@ -1713,34 +1680,11 @@ document.getElementById('qualityDownloadBtn').addEventListener('click', () => {
   XLSX.writeFile(workbook, `${currentMachine}_quality_defects.xlsx`);
 });
 
-/* =========================================================
-   OEE / TARGET TAB
-   Ideal-speed is still a manual per-day entry (Targets/{machine}/{date}.idealSpeed) -
-   it's a machine capability constant, not a planning number.
-
-   Daily/weekly targets are NO LONGER manually entered. A supervisor sets
-   ONE number - the monthly target (MonthlyTargets/{machine}/{YYYY-MM}) -
-   and every day's target is derived from it with a "catch-up" formula:
-
-     remainingTarget = monthlyTarget - actualSoFarBeforeThisDay
-     remainingDays    = daysInMonth - dayOfMonth + 1   (today counts as remaining)
-     todayTarget      = remainingTarget / remainingDays
-
-   This is recomputed fresh from raw actuals every render, for every day of
-   the month at once - nothing is persisted or "locked in", so there's no
-   staleness or drift to manage: a past day's target always comes out the
-   same (its actuals don't change), and today's/future days' targets
-   automatically rise or ease off as actuals come in. Daily targets for a
-   month always sum exactly to that month's target, by construction.
-
-   The last-3-days OEE table further down still exists as before -
-   deliberately small/fast - but now sources its target from this same
-   adaptive calculation instead of a manually-typed daily figure.
-   ========================================================= */
-let currentTargets = {}; // { date: { idealSpeed } } for the selected machine only (ideal speed only now)
+// ==================== OEE / TARGET TAB ====================
+let currentTargets = {};
 let targetsRootSubscribed = false;
 let rawTargetsSnapshot = {};
-let rawMonthlyTargetsSnapshot = {}; // { machineId: { 'YYYY-MM': { targetQty, setBy, setAt } } }
+let rawMonthlyTargetsSnapshot = {};
 let monthlyTargetsRootSubscribed = false;
 let oeeTrendChart = null;
 let dailyTargetChart = null;
@@ -1748,23 +1692,16 @@ let weeklyRollupChart = null;
 let yearlyAchievementChart = null;
 
 function last3DatesIso() {
+  const todayKey = dateKeyFor(Math.floor(Date.now() / 1000));
   const out = [];
   for (let i = 2; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+    const d = new Date(todayKey + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() - i);
     out.push(d.toISOString().slice(0, 10));
   }
   return out;
 }
 
-function daysInMonth(year, month) { // month is 1-12
-  return new Date(year, month, 0).getDate();
-}
-
-// One pass over any event list, bucketed by shift-day date key. Generalized
-// (takes an events array) so it can be reused for a single machine's own
-// events (OEE tab) or another machine's events pulled from overviewData
-// (Analysis tab) without scanning the same list multiple times per caller.
 function buildDailyTotalsMapFromEvents(events) {
   const map = {};
   events.forEach(e => {
@@ -1777,30 +1714,12 @@ function buildDailyTotalsMap() {
   return buildDailyTotalsMapFromEvents(eventList());
 }
 
-// Builds the adaptive daily target/actual table for one calendar month.
-// monthlyTargetQty may be null (no target set for that month yet) - target
-// fields come back null in that case, actuals are still shown.
-//
-// FIX (escalating last-day target bug): days that have already fully
-// completed still use the day-by-day catch-up formula (each one reacting
-// to the actual result of the day before it - that part was always
-// correct). But TODAY and every day still to come get ONE flat target
-// instead of being recomputed one at a time through a still-in-progress
-// today. The old approach treated today's partial count (production isn't
-// done yet) as if today had already failed, and dumped that assumed
-// shortfall onto whatever was left - increasingly concentrated onto the
-// very last day of the month, which is why it could spike to a number far
-// above anything the machine has ever produced in a day. Freezing the
-// remaining days to (remaining target) / (remaining days) guarantees they
-// always add up to exactly the balance left to make - never more.
 function computeAdaptiveMonthTargets(yearMonth, monthlyTargetQty, dailyTotals) {
   const [year, month] = yearMonth.split('-').map(Number);
   const nDays = daysInMonth(year, month);
   const todayKey = dateKeyFor(Math.floor(Date.now() / 1000));
   const todayInThisMonth = todayKey.slice(0, 7) === yearMonth;
   const todayDayOfMonth = todayInThisMonth ? parseInt(todayKey.slice(8, 10), 10) : null;
-  // Fully past or fully future months have no "in-progress" day at all -
-  // run the sequential formula for the whole month in that case.
   const sequentialCutoff = todayDayOfMonth != null ? todayDayOfMonth - 1 : nDays;
 
   const rows = [];
@@ -1822,7 +1741,7 @@ function computeAdaptiveMonthTargets(yearMonth, monthlyTargetQty, dailyTotals) {
     const flatTarget = monthlyTargetQty != null ? Math.max(0, monthlyTargetQty - cumulativeActual) / remainingDays : null;
     for (let day = todayDayOfMonth; day <= nDays; day++) {
       const dateStr = `${yearMonth}-${String(day).padStart(2, '0')}`;
-      const actual = dailyTotals[dateStr] || 0; // today's actual-so-far still shows on the Actual bar - it just no longer feeds back into the target math
+      const actual = dailyTotals[dateStr] || 0;
       cumulativeActual += actual;
       cumulativeTarget += (flatTarget || 0);
       rows.push({ date: dateStr, dayOfMonth: day, target: flatTarget, actual, cumulativeActual, cumulativeTarget });
@@ -1832,18 +1751,11 @@ function computeAdaptiveMonthTargets(yearMonth, monthlyTargetQty, dailyTotals) {
   return rows;
 }
 
-// Trailing-average forecast: averages the last up-to-7 elapsed days'
-// actuals and projects that flat rate across the remaining days of the
-// month, added onto today's cumulative actual. Returns a `forecast` array
-// aligned with `rows` (null for past days, starts at today) for charting,
-// plus the plain-language numbers used in the note under the chart.
 function computeForecast(rows, monthlyTargetQty) {
   const todayKey = dateKeyFor(Math.floor(Date.now() / 1000));
   const todayIdx = rows.findIndex(r => r.date === todayKey);
   const forecast = rows.map(() => null);
   if (todayIdx < 0) {
-    // Selected month is entirely in the past or entirely in the future -
-    // nothing to forecast from "today" within it.
     return { forecast, trailingAvg: null, projectedMonthEnd: null, todayIdx };
   }
   const elapsed = rows.slice(0, todayIdx + 1);
@@ -1897,7 +1809,7 @@ function computeYearlyAchievement(year, dailyTotals) {
 
 function recomputeTargetsForCurrentMachine() {
   currentTargets = rawTargetsSnapshot[currentMachine] || {};
-  renderSummary(); // refreshes the Target Line Speed card on the Production tab
+  renderSummary();
   renderOeeAll();
 }
 
@@ -1907,7 +1819,7 @@ subscribeToMachine = function (machineId) {
 
   if (!targetsRootSubscribed) {
     targetsRootSubscribed = true;
-    dbOnValue(dbRef(db, 'Targets'), (snap) => {
+    onValue(ref(db, 'Targets'), (snap) => {
       rawTargetsSnapshot = snap.val() || {};
       recomputeTargetsForCurrentMachine();
     });
@@ -1917,7 +1829,7 @@ subscribeToMachine = function (machineId) {
 
   if (!monthlyTargetsRootSubscribed) {
     monthlyTargetsRootSubscribed = true;
-    dbOnValue(dbRef(db, 'MonthlyTargets'), (snap) => {
+    onValue(ref(db, 'MonthlyTargets'), (snap) => {
       rawMonthlyTargetsSnapshot = snap.val() || {};
       loadMonthlyTargetInputForSelectedMonth();
       renderOeeAll();
@@ -1930,7 +1842,7 @@ subscribeToMachine = function (machineId) {
   }
 };
 
-/* ---------- Monthly target input ---------- */
+// Monthly target input
 const monthlyTargetMonthInput = document.getElementById('monthlyTargetMonth');
 monthlyTargetMonthInput.value = new Date().toISOString().slice(0, 7);
 
@@ -1957,7 +1869,7 @@ document.getElementById('monthlyTargetSaveBtn').addEventListener('click', async 
   }
 
   try {
-    await dbSet(dbRef(db, `MonthlyTargets/${currentMachine}/${ym}`), {
+    await set(ref(db, `MonthlyTargets/${currentMachine}/${ym}`), {
       targetQty, setAt: Math.floor(Date.now() / 1000)
     });
     msg.style.color = 'var(--ok)';
@@ -1970,9 +1882,9 @@ document.getElementById('monthlyTargetSaveBtn').addEventListener('click', async 
   }
 });
 
-/* ---------- Ideal speed input (unchanged in spirit, targetQty dropped) ---------- */
+// Ideal speed input
 const oeeTargetDateInput = document.getElementById('oeeTargetDate');
-oeeTargetDateInput.value = new Date().toISOString().slice(0, 10);
+oeeTargetDateInput.value = dateKeyFor(Math.floor(Date.now() / 1000));
 
 oeeTargetDateInput.addEventListener('change', () => {
   const t = currentTargets[oeeTargetDateInput.value] || {};
@@ -1992,7 +1904,7 @@ document.getElementById('oeeSaveTargetBtn').addEventListener('click', async () =
   }
 
   try {
-    await dbSet(dbRef(db, `Targets/${currentMachine}/${dateStr}`), { idealSpeed });
+    await set(ref(db, `Targets/${currentMachine}/${dateStr}`), { idealSpeed });
     msg.style.color = 'var(--ok)';
     msg.textContent = `Saved for ${currentMachine} on ${dateStr}.`;
     msg.style.display = 'block';
@@ -2003,7 +1915,6 @@ document.getElementById('oeeSaveTargetBtn').addEventListener('click', async () =
   }
 });
 
-/* ---------- Last-3-days OEE table, now sourcing target from the adaptive calc ---------- */
 function computeOeeForDate(dateStr) {
   const events = eventList();
   const actual = sumForDate(events, dateStr);
@@ -2030,11 +1941,8 @@ function computeOeeForDate(dateStr) {
 
   const oee = (performance != null && quality != null) ? availability * performance * quality : null;
 
-  return { date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, targetQty, efficiency, performance, oee };
+  return { date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, targetQty, idealSpeed, efficiency, performance, oee };
 }
-
-function fmtPct(v) { return v == null ? '—' : (v * 100).toFixed(1) + '%'; }
-function fmtNum(v) { return v == null ? '—' : v.toFixed(1); }
 
 function renderOeeAll() {
   const dates = last3DatesIso();
@@ -2054,7 +1962,7 @@ function renderOeeTable(rows) {
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.actual.toFixed(1)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.efficiency == null ? '—' : r.efficiency.toFixed(1) + '%'}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.availability)}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.performance)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.performance == null ? (r.idealSpeed == null ? '— (no speed set)' : '—') : (r.performance * 100).toFixed(1) + '%'}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtPct(r.quality)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;font-weight:700;">${fmtPct(r.oee)}</td>
     </tr>
@@ -2088,7 +1996,6 @@ function renderOeeTrendChart(rows) {
   });
 }
 
-/* ---------- Monthly target vs actual, weekly rollup, yearly achievement ---------- */
 function renderMonthlyTargetViews() {
   const ym = monthlyTargetMonthInput.value;
   if (!ym) return;
@@ -2196,7 +2103,7 @@ function renderWeeklyRollupChart(weeks) {
 function renderYearlyAchievementChart(months) {
   const canvas = document.getElementById('yearlyAchievementChart');
   if (!canvas) return;
-  const labels = months.map(m => m.month.slice(5)); // just "01".."12"
+  const labels = months.map(m => m.month.slice(5));
   const actualData = months.map(m => +m.cumulativeActual.toFixed(1));
   const targetData = months.map(m => m.cumulativeTarget != null ? +m.cumulativeTarget.toFixed(1) : null);
 
@@ -2228,29 +2135,17 @@ function renderYearlyAchievementChart(months) {
   });
 }
 
-/* =========================================================
-   PRODUCTION ANALYSIS TAB
-   Independent of the single-machine selector, like Overview -
-   reads from overviewData (already subscribed for all 3
-   machines) so the Machine filter and the always-on
-   Machine-wise comparison don't need any new Firebase
-   listeners. Everything here is filtered by Date range,
-   Shift (A: 7am-7pm IST, B: 7pm-7am IST), and Machine.
-   ========================================================= */
+// ==================== ANALYSIS TAB ====================
 let analysisDayChart = null;
 let analysisHourChart = null;
 let analysisShiftChart = null;
 let analysisMachineChart = null;
-const ANALYSIS_MACHINES = ['M01-A', 'M01-B', 'M01-C'];
 
 function rawEventsForMachine(machineId) {
   return Object.values((overviewData[machineId] && overviewData[machineId].events) || {})
     .filter(e => e && typeof e.timestamp === 'number');
 }
 
-// Same IST-safe trick dateKeyFor uses: shift the timestamp into factory-
-// local time first, then read fields with the UTC getters so the result
-// never depends on the viewing browser's own timezone.
 function shiftFor(ts) {
   const localTs = ts + FACTORY_UTC_OFFSET_MINUTES * 60;
   const hour = new Date(localTs * 1000).getUTCHours();
@@ -2272,10 +2167,6 @@ function enumerateDateKeys(fromStr, toStr) {
   return out;
 }
 
-// Sum of the adaptive daily target (see OEE tab) for one machine across
-// every day in [fromStr, toStr] - spans month boundaries by grouping the
-// requested days by their YYYY-MM and calling computeAdaptiveMonthTargets
-// once per month touched, rather than once per day.
 function targetForRange(machineId, fromStr, toStr) {
   const dailyTotals = buildDailyTotalsMapFromEvents(rawEventsForMachine(machineId));
   const days = enumerateDateKeys(fromStr, toStr);
@@ -2298,9 +2189,6 @@ function targetForRange(machineId, fromStr, toStr) {
   return anyTarget ? total : null;
 }
 
-// Per-day target/actual rows for one machine across [fromStr, toStr],
-// respecting the shift filter for the actual side only (target is a
-// full-day figure - see the filter panel's note on why).
 function dayRowsForRange(machineId, fromStr, toStr, shift) {
   const dailyTotals = buildDailyTotalsMapFromEvents(rawEventsForMachine(machineId));
   const events = rawEventsForMachine(machineId).filter(e => shift === 'ALL' || shiftFor(e.timestamp) === shift);
@@ -2334,19 +2222,16 @@ function getAnalysisFilters() {
   };
 }
 
-function fmtInt(v) { return v == null ? '—' : Math.round(v).toLocaleString(); }
-
 function renderAnalysisTab() {
   const { from, to, shift, machine } = getAnalysisFilters();
   if (!from || !to || from > to) return;
 
   const machinesInScope = machine === 'ALL' ? ANALYSIS_MACHINES : [machine];
 
-  // ---- 1-4, 9, 14: Target / Actual / Achievement / Shortfall / Averages ----
   let totalTarget = null;
   let totalActual = 0;
   let bestDay = null;
-  const combinedDayRows = {}; // date -> { target, actual } summed across machinesInScope
+  const combinedDayRows = {};
 
   machinesInScope.forEach(m => {
     const t = targetForRange(m, from, to);
@@ -2389,11 +2274,9 @@ function renderAnalysisTab() {
     cardHtml('Best Day', bestDay ? fmtInt(bestDay.actual) : '—', bestDay ? bestDay.date : '')
   ].join('');
 
-  // ---- 7, 12, 13: Day-wise Target vs Actual chart + trend badge ----
   renderAnalysisDayChart(dayRowsArr);
   renderAnalysisTrendBadge(dayRowsArr);
 
-  // ---- 5, 10, 11: Hourly Production Trend ----
   const hourlyTotals = new Array(24).fill(0);
   machinesInScope.forEach(m => {
     rawEventsForMachine(m).forEach(e => {
@@ -2405,7 +2288,6 @@ function renderAnalysisTab() {
   });
   renderAnalysisHourChart(hourlyTotals);
 
-  // ---- 6: Shift-wise Production (always both shifts, ignores the Shift filter) ----
   let shiftA = 0, shiftB = 0;
   machinesInScope.forEach(m => {
     rawEventsForMachine(m).forEach(e => {
@@ -2416,7 +2298,6 @@ function renderAnalysisTab() {
   });
   renderAnalysisShiftChart(shiftA, shiftB);
 
-  // ---- 8: Machine-wise Production (always all 3, regardless of Machine filter) ----
   const perMachineActual = ANALYSIS_MACHINES.map(m => {
     let total = 0;
     rawEventsForMachine(m).forEach(e => {
@@ -2433,7 +2314,7 @@ function renderAnalysisTab() {
 function renderAnalysisDayChart(rows) {
   const canvas = document.getElementById('analysisDayChart');
   if (!canvas) return;
-  const labels = rows.map(r => r.date.slice(5)); // MM-DD
+  const labels = rows.map(r => r.date.slice(5));
   const targetData = rows.map(r => r.target != null ? +r.target.toFixed(1) : null);
   const actualData = rows.map(r => +r.actual.toFixed(1));
 
@@ -2465,10 +2346,6 @@ function renderAnalysisDayChart(rows) {
   });
 }
 
-// Increasing/Decreasing/Stable: compares the average of the first half of
-// the selected range's days against the second half. A +/-5% band counts
-// as Stable so ordinary day-to-day noise doesn't flip the label back and
-// forth.
 function renderAnalysisTrendBadge(rows) {
   const badge = document.getElementById('analysisTrendBadge');
   if (!badge) return;
@@ -2594,27 +2471,7 @@ function renderAnalysisMachineChart(perMachineActual) {
   });
 })();
 
-/* =========================================================
-   OPERATOR MONTHLY PERFORMANCE TAB
-   Reuses data already loaded elsewhere - no new Firebase
-   subscriptions:
-     - overviewData[machine].sessions / .events  (all 3 machines)
-     - rawDowntimeSnapshot, rawQualitySnapshot   (all dates/machines)
-     - rawMonthlyTargetsSnapshot                 (for the Production section)
-     - rawOperators / operatorNames
-
-   Known approximations, called out again here since they drive
-   real numbers on this tab:
-     - Quality is matched by the free-text "Production Operator"
-       name typed on the defect form, not a real ID.
-     - Downtime IS matched by a real operator ID (startedBy) -
-       that one's exact.
-     - There's no Leave data source, so Absent = every non-present
-       day in the month.
-     - Target is not tracked per shift, so an operator's "target"
-       is modeled as half of their machine's daily target for each
-       day they worked - a stated assumption, not a stored fact.
-   ========================================================= */
+// ==================== OPERATOR TAB ====================
 let operatorDailyChart = null;
 
 function operatorSessionsInMonth(operatorId, yearMonth) {
@@ -2632,10 +2489,6 @@ function operatorSessionsInMonth(operatorId, yearMonth) {
   return sessions;
 }
 
-// Production actually made during this operator's sessions, using the same
-// timestamp-overlap matching the Staffs tab uses - just scoped to one
-// operator's own sessions across all 3 machines instead of every operator
-// on one machine.
 function operatorActualByDay(sessions) {
   const byDay = {};
   sessions.forEach(s => {
@@ -2646,10 +2499,6 @@ function operatorActualByDay(sessions) {
   return byDay;
 }
 
-// See the file-level note above - target isn't tracked per shift, so each
-// day this operator worked contributes half that machine's adaptive daily
-// target (see OEE tab). If they had two sessions on different machines the
-// same day, both machines' half-day targets are added in.
 function operatorTargetByDay(sessions, yearMonth) {
   const byDay = {};
   const machinesUsed = Array.from(new Set(sessions.map(s => s.machineId)));
@@ -2669,19 +2518,27 @@ function operatorTargetByDay(sessions, yearMonth) {
 }
 
 function operatorQualityRecords(operatorName, yearMonth) {
-  const records = [];
+  const defects = [];
+  const scrap = [];
   const needle = (operatorName || '').trim().toLowerCase();
-  if (!needle) return records;
+  if (!needle) return { defects, scrap };
+  
   Object.keys(rawQualitySnapshot).forEach(date => {
     if (date.slice(0, 7) !== yearMonth) return;
     ANALYSIS_MACHINES.forEach(machineId => {
       const forMachine = (rawQualitySnapshot[date] || {})[machineId] || {};
       Object.values(forMachine).forEach(r => {
-        if ((r.productionOperator || '').trim().toLowerCase() === needle) records.push(r);
+        if ((r.productionOperator || '').trim().toLowerCase() === needle) {
+          if (r.isScrap === true) {
+            scrap.push(r);
+          } else {
+            defects.push(r);
+          }
+        }
       });
     });
   });
-  return records;
+  return { defects, scrap };
 }
 
 function operatorDowntimeRecords(operatorId, yearMonth) {
@@ -2696,22 +2553,6 @@ function operatorDowntimeRecords(operatorId, yearMonth) {
     });
   });
   return records;
-}
-
-function badgeColorFor(pct, goodMin, okMin) {
-  if (pct == null) return 'var(--text-dim)';
-  if (pct >= goodMin) return 'var(--ok)';
-  if (pct >= okMin) return 'var(--warn)';
-  return 'var(--err)';
-}
-
-function statCard(label, value, sub, color) {
-  return `
-    <div style="background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;">
-      <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">${label}</div>
-      <div style="font-size:20px;font-weight:700;${color ? `color:${color};` : ''}">${value}</div>
-      ${sub ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${sub}</div>` : ''}
-    </div>`;
 }
 
 function renderOperatorTab() {
@@ -2739,7 +2580,7 @@ function renderOperatorTab() {
   const targetByDay = operatorTargetByDay(sessions, yearMonth);
   const presentDays = new Set(sessions.map(s => s.dateKey));
 
-  /* ---------- Operator Details ---------- */
+  // Operator Details
   const machineCounts = {};
   sessions.forEach(s => { machineCounts[s.machineId] = (machineCounts[s.machineId] || 0) + 1; });
   const machinesSorted = Object.keys(machineCounts).sort((a, b) => machineCounts[b] - machineCounts[a]);
@@ -2755,13 +2596,13 @@ function renderOperatorTab() {
 
   document.getElementById('operatorDetailsCards').innerHTML = [
     statCard('Operator Name', escapeHtml(operatorName)),
-    statCard('Employee ID', escapeHtml(operatorId), 'Login ID used as-is - no separate field exists'),
+    statCard('Employee ID', escapeHtml(operatorId)),
     statCard('Machine', escapeHtml(machineLabel)),
     statCard('Shift', escapeHtml(shiftLabel)),
     statCard('Month', yearMonth)
   ].join('');
 
-  /* ---------- Attendance ---------- */
+  // Attendance
   const presentCount = presentDays.size;
   const absentCount = Math.max(0, totalWorkingDays - presentCount);
   const attendancePct = totalWorkingDays > 0 ? (presentCount / totalWorkingDays) * 100 : null;
@@ -2773,7 +2614,7 @@ function renderOperatorTab() {
     statCard('Attendance %', attendancePct == null ? '—' : attendancePct.toFixed(1) + '%', null, badgeColorFor(attendancePct, 95, 85))
   ].join('');
 
-  /* ---------- Production ---------- */
+  // Production
   const totalActual = Object.values(actualByDay).reduce((a, v) => a + v, 0);
   const totalTarget = Object.keys(targetByDay).length ? Object.values(targetByDay).reduce((a, v) => a + v, 0) : null;
   const achievementPct = totalTarget ? (totalActual / totalTarget) * 100 : null;
@@ -2791,25 +2632,29 @@ function renderOperatorTab() {
   const allDays = Array.from(new Set([...Object.keys(actualByDay), ...Object.keys(targetByDay)])).sort();
   renderOperatorDailyChart(allDays, actualByDay, targetByDay);
 
-  /* ---------- Quality ---------- */
-  const qualityRecords = operatorQualityRecords(operatorName, yearMonth);
-  const rejectedQty = qualityRecords.reduce((a, r) => a + (r.quantity || 0), 0);
-  const rejectionPct = totalActual > 0 ? (rejectedQty / totalActual) * 100 : (rejectedQty > 0 ? 100 : null);
+  // Quality - split defects and scrap
+  const qualityData = operatorQualityRecords(operatorName, yearMonth);
+  const defectQty = qualityData.defects.reduce((a, r) => a + (r.quantity || 0), 0);
+  const scrapQty = qualityData.scrap.reduce((a, r) => a + (r.quantity || 0), 0);
+  const totalRejected = defectQty + scrapQty;
+  const rejectionPct = totalActual > 0 ? (totalRejected / totalActual) * 100 : (totalRejected > 0 ? 100 : null);
+
   document.getElementById('operatorQualityCards').innerHTML = [
     statCard('Total Production', fmtInt(totalActual)),
-    statCard('Rejection Quantity', fmtInt(rejectedQty)),
-    statCard('Rejection %', rejectionPct == null ? '—' : rejectionPct.toFixed(1) + '%', null, badgeColorFor(rejectionPct == null ? null : 100 - rejectionPct, 98, 95)),
-    statCard('Quality Issues', qualityRecords.length)
+    statCard('Defects (non-scrap)', fmtInt(defectQty)),
+    statCard('Scrap', fmtInt(scrapQty), scrapQty > 0 ? 'Generated during production' : ''),
+    statCard('Total Rejection', fmtInt(totalRejected)),
+    statCard('Rejection %', rejectionPct == null ? '—' : rejectionPct.toFixed(1) + '%', null, badgeColorFor(rejectionPct == null ? null : 100 - rejectionPct, 98, 95))
   ].join('');
 
   const defectTotals = {};
-  qualityRecords.forEach(r => { defectTotals[r.defectType] = (defectTotals[r.defectType] || 0) + (r.quantity || 0); });
+  qualityData.defects.forEach(r => { defectTotals[r.defectType] = (defectTotals[r.defectType] || 0) + (r.quantity || 0); });
   const topDefects = Object.entries(defectTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
   document.getElementById('operatorDefectList').innerHTML = topDefects.length
     ? topDefects.map(([type, qty]) => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);"><span>${escapeHtml(type)}</span><span style="color:var(--text-dim);">${fmtInt(qty)}</span></div>`).join('')
     : '<div style="color:var(--text-dim);">No defects recorded for this operator this month.</div>';
 
-  /* ---------- Downtime ---------- */
+  // Downtime
   const downtimeRecords = operatorDowntimeRecords(operatorId, yearMonth);
   const totalDowntimeMin = downtimeRecords.reduce((a, r) => a + (r.durationMinutes || 0), 0);
   const breakdownMin = downtimeRecords.filter(r => r.reason === 'moldDefective' || r.reason === 'maintenance').reduce((a, r) => a + (r.durationMinutes || 0), 0);
@@ -2818,13 +2663,18 @@ function renderOperatorTab() {
     statCard('Breakdown Time', breakdownMin + ' min', 'Mold Defective + Maintenance only')
   ].join('');
 
-  /* ---------- Operator Performance Summary ---------- */
+  // Performance Summary
   document.getElementById('operatorSummaryCards').innerHTML = [
     statCard('Production vs Target', achievementPct == null ? '—' : achievementPct.toFixed(1) + '%', fmtInt(totalActual) + ' of ' + fmtInt(totalTarget), badgeColorFor(achievementPct, 95, 80)),
-    statCard('Quality Issues', qualityRecords.length, rejectionPct == null ? '' : rejectionPct.toFixed(1) + '% rejected', badgeColorFor(rejectionPct == null ? null : 100 - rejectionPct, 98, 95)),
+    statCard('Quality Issues', qualityData.defects.length + qualityData.scrap.length, scrapQty > 0 ? `${scrapQty} scrap, ${defectQty} defects` : `${defectQty} defects`),
+    statCard('Scrap Generated', fmtInt(scrapQty), scrapQty > 0 ? 'Entered at punch-out' : 'None'),
     statCard('Downtime', totalDowntimeMin + ' min', downtimeRecords.length + ' incident(s)'),
     statCard('Attendance', attendancePct == null ? '—' : attendancePct.toFixed(1) + '%', presentCount + ' / ' + totalWorkingDays + ' days', badgeColorFor(attendancePct, 95, 85))
   ].join('');
+
+  // Also update the all-days chart with scrap
+  // We'll add a separate scrap chart or overlay
+  renderOperatorScrapChart(allDays, qualityData.scrap);
 }
 
 function renderOperatorDailyChart(allDays, actualByDay, targetByDay) {
@@ -2862,6 +2712,43 @@ function renderOperatorDailyChart(allDays, actualByDay, targetByDay) {
   });
 }
 
+// New: Operator scrap chart
+let operatorScrapChart = null;
+function renderOperatorScrapChart(allDays, scrapRecords) {
+  const canvas = document.getElementById('operatorScrapChart');
+  if (!canvas) {
+    // We need to add this canvas to the HTML - I'll add it in the operator tab
+    return;
+  }
+  const labels = allDays.map(d => d.slice(8));
+  const scrapByDay = {};
+  scrapRecords.forEach(r => {
+    const dateKey = dateKeyFor(r.timestamp || 0);
+    scrapByDay[dateKey] = (scrapByDay[dateKey] || 0) + (r.quantity || 0);
+  });
+  const scrapData = allDays.map(d => +(scrapByDay[d] || 0).toFixed(1));
+
+  if (operatorScrapChart) {
+    operatorScrapChart.data.labels = labels;
+    operatorScrapChart.data.datasets[0].data = scrapData;
+    operatorScrapChart.update('none');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  operatorScrapChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Scrap', data: scrapData, backgroundColor: '#e2564f' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { labels: { color: '#f2f0eb' } } },
+      scales: {
+        x: { grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } },
+        y: { beginAtZero: true, grid: { color: '#33383f' }, ticks: { color: '#9aa0aa' } }
+      }
+    }
+  });
+}
+
 (function initOperatorFilters() {
   document.getElementById('operatorMonth').value = new Date().toISOString().slice(0, 7);
   document.getElementById('operatorSelect').addEventListener('change', renderOperatorTab);
@@ -2869,26 +2756,9 @@ function renderOperatorDailyChart(allDays, actualByDay, targetByDay) {
   renderOperatorTab();
 })();
 
-/* =========================================================
-   MIS REPORT TAB
-   A single day, all 3 machines, one consolidated snapshot -
-   deliberately NOT wired into every live data update like
-   Analysis/OEE (it's a report you pull up and read, not a
-   live monitor). Renders on date change, the Refresh button,
-   or when the tab itself is opened. Every number here is
-   recomputed from the same snapshots the other tabs already
-   use (overviewData, rawDowntimeSnapshot, rawQualitySnapshot,
-   rawMonthlyTargetsSnapshot, rawTargetsSnapshot) - no new
-   Firebase reads, and nothing here can disagree with what's
-   shown elsewhere for the same day.
-   ========================================================= */
+// ==================== MIS REPORT TAB ====================
 const MIS_REASON_LABELS = { noMaterial: 'No Material', moldDefective: 'Mold Defective', maintenance: 'Maintenance' };
 
-// Machine-agnostic version of the OEE tab's computeOeeForDate - that one
-// reads currentTargets/currentDowntimeHistory/currentQualityHistory, which
-// are only ever populated for whichever ONE machine is currently selected.
-// This tab needs all 3 machines on one date, so it reads the raw
-// (unfiltered-by-machine) snapshots directly instead.
 function computeOeeForDateAndMachine(machineId, dateStr) {
   const events = rawEventsForMachine(machineId);
   const dailyTotals = buildDailyTotalsMapFromEvents(events);
@@ -2914,7 +2784,10 @@ function computeOeeForDateAndMachine(machineId, dateStr) {
   const performance = idealSpeed && runMinutes > 0 ? actual / (idealSpeed * runMinutes) : null;
   const oee = (performance != null && quality != null) ? availability * performance * quality : null;
 
-  return { machineId, date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, targetQty, efficiency, performance, oee, downRecords, defectRecords };
+  const scrapQty = defectRecords.filter(r => r.isScrap === true).reduce((a, r) => a + (r.quantity || 0), 0);
+  const defectQty = rejected - scrapQty;
+
+  return { machineId, date: dateStr, actual, downtimeMinutes, runMinutes, availability, rejected, quality, targetQty, efficiency, performance, oee, downRecords, defectRecords, scrapQty, defectQty };
 }
 
 function misShiftRows(dateStr) {
@@ -2938,10 +2811,6 @@ function misShiftRows(dateStr) {
   return rows;
 }
 
-// Simple, explainable threshold rules - not a live monitor, just flags
-// worth a manager's attention when they read this report. Each alert
-// carries its own "action" framing so sections 7 and 8 are two views of
-// the exact same underlying list, not separately-maintained logic.
 function buildMisAlerts(perMachine) {
   const alerts = [];
   perMachine.forEach(r => {
@@ -2971,7 +2840,16 @@ function buildMisAlerts(perMachine) {
       alerts.push({
         severity: r.downtimeMinutes > 240 ? 'high' : 'medium',
         text: `${r.machineId}: ${r.downtimeMinutes} min of downtime today.`,
-        action: `Review ${r.machineId}'s downtime incidents - a recurring reason may need a maintenance or supply fix, not just a log entry.`
+        action: `Review ${r.machineId}'s downtime incidents - a recurring reason may need a maintenance or supply fix.`
+      });
+    }
+    // New: Scrap alert
+    const scrapPct = r.actual > 0 ? (r.scrapQty / r.actual) * 100 : 0;
+    if (scrapPct > 5) {
+      alerts.push({
+        severity: scrapPct > 10 ? 'high' : 'medium',
+        text: `${r.machineId}: Scrap rate ${scrapPct.toFixed(1)}% of production.`,
+        action: `Investigate scrap causes on ${r.machineId} - check operator training and machine calibration.`
       });
     }
   });
@@ -2990,17 +2868,20 @@ function renderMisProductionTable(perMachine) {
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);">${r.machineId}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtInt(r.targetQty)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtInt(r.actual)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;color:var(--err);">${fmtInt(r.scrapQty)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${r.efficiency == null ? '—' : r.efficiency.toFixed(1) + '%'}</td>
       <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${fmtInt(shortfall)}</td>
     </tr>`;
   }).join('');
   const totalAchievement = anyTarget && totalTarget ? (totalActual / totalTarget) * 100 : null;
   const totalShortfall = anyTarget ? totalTarget - totalActual : null;
+  const totalScrap = perMachine.reduce((a, r) => a + r.scrapQty, 0);
   table.innerHTML = `
     <thead><tr>
       <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Machine</th>
       <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Target</th>
       <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Actual</th>
+      <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Scrap</th>
       <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Achievement %</th>
       <th style="text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text-dim);font-size:11px;text-transform:uppercase;">Shortfall</th>
     </tr></thead>
@@ -3009,6 +2890,7 @@ function renderMisProductionTable(perMachine) {
         <td style="padding:10px 12px;">Total</td>
         <td style="padding:10px 12px;text-align:right;">${fmtInt(anyTarget ? totalTarget : null)}</td>
         <td style="padding:10px 12px;text-align:right;">${fmtInt(totalActual)}</td>
+        <td style="padding:10px 12px;text-align:right;color:var(--err);">${fmtInt(totalScrap)}</td>
         <td style="padding:10px 12px;text-align:right;">${totalAchievement == null ? '—' : totalAchievement.toFixed(1) + '%'}</td>
         <td style="padding:10px 12px;text-align:right;">${fmtInt(totalShortfall)}</td>
       </tr>
@@ -3080,19 +2962,30 @@ function renderMisEfficiencyRanking(perMachine) {
 function renderMisQuality(perMachine) {
   const totalActual = perMachine.reduce((a, r) => a + r.actual, 0);
   const allDefects = [];
-  perMachine.forEach(r => r.defectRecords.forEach(d => allDefects.push(d)));
+  let totalScrap = 0;
+  perMachine.forEach(r => {
+    r.defectRecords.forEach(d => {
+      allDefects.push(d);
+      if (d.isScrap === true) totalScrap += d.quantity || 0;
+    });
+  });
   const totalRejected = allDefects.reduce((a, d) => a + (d.quantity || 0), 0);
   const rejectionPct = totalActual > 0 ? (totalRejected / totalActual) * 100 : (totalRejected > 0 ? 100 : null);
+  const scrapPct = totalActual > 0 ? (totalScrap / totalActual) * 100 : 0;
 
   document.getElementById('misQualitySummary').innerHTML = [
     statCard('Total Production', fmtInt(totalActual)),
-    statCard('Rejection Qty', fmtInt(totalRejected)),
+    statCard('Total Rejection', fmtInt(totalRejected)),
+    statCard('Scrap', fmtInt(totalScrap), scrapPct.toFixed(1) + '% of production'),
     statCard('Rejection %', rejectionPct == null ? '—' : rejectionPct.toFixed(1) + '%', null, badgeColorFor(rejectionPct == null ? null : 100 - rejectionPct, 98, 95)),
     statCard('Quality Issues', allDefects.length)
   ].join('');
 
   const byType = {};
-  allDefects.forEach(d => { byType[d.defectType] = (byType[d.defectType] || 0) + (d.quantity || 0); });
+  allDefects.forEach(d => {
+    const key = d.isScrap === true ? '🔄 Scrap' : d.defectType;
+    byType[key] = (byType[key] || 0) + (d.quantity || 0);
+  });
   const rows = Object.entries(byType).sort((a, b) => b[1] - a[1]);
   document.getElementById('misQualityTable').innerHTML = rows.length ? `
     <thead><tr>
@@ -3158,7 +3051,7 @@ document.getElementById('misDownloadBtn').addEventListener('click', () => {
   const perMachine = ANALYSIS_MACHINES.map(m => computeOeeForDateAndMachine(m, dateStr));
 
   const productionRows = perMachine.map(r => ({
-    Machine: r.machineId, Target: r.targetQty, Actual: r.actual,
+    Machine: r.machineId, Target: r.targetQty, Actual: r.actual, Scrap: r.scrapQty,
     'Achievement %': r.efficiency != null ? +r.efficiency.toFixed(1) : null,
     Shortfall: r.targetQty != null ? +(r.targetQty - r.actual).toFixed(1) : null
   }));
@@ -3176,7 +3069,7 @@ document.getElementById('misDownloadBtn').addEventListener('click', () => {
   })));
   const qualityRows = [];
   perMachine.forEach(r => r.defectRecords.forEach(d => qualityRows.push({
-    Machine: r.machineId, 'Defect Type': d.defectType, Quantity: d.quantity,
+    Machine: r.machineId, 'Defect Type': d.isScrap ? 'Scrap' : d.defectType, Quantity: d.quantity,
     'Coil No': d.coilNo, 'Drum No': d.drumNo, 'Production Operator': d.productionOperator
   })));
   const shiftRows = misShiftRows(dateStr).map(r => ({
@@ -3199,38 +3092,27 @@ document.getElementById('misDownloadBtn').addEventListener('click', () => {
   document.getElementById('misDate').value = new Date().toISOString().slice(0, 10);
   document.getElementById('misDate').addEventListener('change', renderMisReport);
   document.getElementById('misRefreshBtn').addEventListener('click', renderMisReport);
-  // Deliberately NOT calling renderMisReport() here - at this point in
-  // script execution, the Overview tab section further down hasn't run yet
-  // (overviewData, subscribeOverview, etc. don't exist until it does), so
-  // calling this now throws and kills the rest of the script entirely. The
-  // tab-click handler already calls renderMisReport() when this tab is
-  // opened, which happens well after the whole script has finished loading.
 })();
 
-/* =========================================================
-   OVERVIEW TAB
-   Independent of the single-machine selector used by every
-   other tab - subscribes to all known stations at once so
-   they can be compared side by side without switching.
-   ========================================================= */
-let overviewData = {}; // { machineId: { lastSeen, events: {}, sessions: {} } }
+// ==================== OVERVIEW TAB ====================
+let overviewData = {};
 let overviewSubscribed = new Set();
 
 function subscribeOverview(machineIds) {
   machineIds.forEach(id => {
-    if (overviewSubscribed.has(id)) return; // already listening, don't double-subscribe
+    if (overviewSubscribed.has(id)) return;
     overviewSubscribed.add(id);
     if (!overviewData[id]) overviewData[id] = { lastSeen: null, events: {}, sessions: {} };
 
-    dbOnValue(dbRef(db, `Machines/${id}/lastSeen`), (snap) => {
+    onValue(ref(db, `Machines/${id}/lastSeen`), (snap) => {
       overviewData[id].lastSeen = snap.val();
       debouncedRenderOverview();
     });
-    dbOnValue(dbRef(db, `Sensor/${id}/events`), (snap) => {
+    onValue(ref(db, `Sensor/${id}/events`), (snap) => {
       overviewData[id].events = snap.val() || {};
       debouncedRenderOverview();
     });
-    dbOnValue(dbRef(db, `Sessions/${id}`), (snap) => {
+    onValue(ref(db, `Sessions/${id}`), (snap) => {
       overviewData[id].sessions = snap.val() || {};
       debouncedRenderOverview();
     });
@@ -3269,17 +3151,18 @@ function renderOverviewProduction() {
   if (!body) return;
   const ids = Object.keys(overviewData).sort();
   if (ids.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
     return;
   }
   const nowSec = Math.floor(Date.now() / 1000);
-  const today = dateKeyFor(nowSec); // shift-aware
+  const today = dateKeyFor(nowSec);
   const yesterday = dateKeyFor(nowSec - 86400);
 
   body.innerHTML = ids.map(id => {
     const d = overviewData[id];
     const events = Object.values(d.events).filter(e => e && typeof e.timestamp === 'number');
     const todayTotal = events.filter(e => dateKeyFor(e.timestamp) === today).reduce((a, e) => a + e.count, 0);
+    const todayScrap = getScrapForMachineAndDate(id, today);
     const yesterdayTotal = events.filter(e => dateKeyFor(e.timestamp) === yesterday).reduce((a, e) => a + e.count, 0);
     const speedWindowTotal = events.filter(e => nowSec - e.timestamp <= SPEED_WINDOW_SEC).reduce((a, e) => a + e.count, 0);
     const speed = (speedWindowTotal / (SPEED_WINDOW_SEC / 60)).toFixed(2);
@@ -3290,6 +3173,7 @@ function renderOverviewProduction() {
         <td style="padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700;">${id}</td>
         <td style="padding:10px 12px;border-bottom:1px solid var(--line);"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${status.color};display:inline-block;"></span>${status.label}</span></td>
         <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${todayTotal.toFixed(1)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;color:var(--err);">${todayScrap.toFixed(1)}</td>
         <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${yesterdayTotal.toFixed(1)}</td>
         <td style="padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;">${speed}</td>
       </tr>
@@ -3305,17 +3189,15 @@ function renderOverviewStaffs() {
     body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:20px 0;">No stations found.</td></tr>';
     return;
   }
-  const today = dateKeyFor(Math.floor(Date.now() / 1000)); // shift-aware
+  const today = dateKeyFor(Math.floor(Date.now() / 1000));
 
   body.innerHTML = ids.map(id => {
     const d = overviewData[id];
-    const result = allocateEventsToOperatorsLocal(d.events, d.sessions, 1); // 1-day range is enough for "today"
+    const result = allocateEventsToOperatorsLocal(d.events, d.sessions, 1);
     const todayByOperator = result.dailyByOperator[today] || {};
     const todayAssigned = Object.entries(todayByOperator).filter(([k]) => k !== 'Unassigned').reduce((a, [, v]) => a + v, 0);
     const todayUnassigned = todayByOperator['Unassigned'] || 0;
 
-    const nowSec = Math.floor(Date.now() / 1000);
-    const openSession = Object.values(d.sessions || {}).find(s => !s.punchOut || s.punchOut > nowSec - 5);
     const activeSessionOpen = Object.values(d.sessions || {}).find(s => s.status === 'open');
     const activeName = activeSessionOpen ? (activeSessionOpen.name || activeSessionOpen.operatorId) : '—';
 
@@ -3330,9 +3212,6 @@ function renderOverviewStaffs() {
   }).join('');
 }
 
-// Lightweight local copy of the allocation logic so Overview doesn't depend
-// on the Staffs tab's operatorNames timing (uses raw operatorId as the name
-// fallback, same as the main allocate() function does when names aren't loaded yet).
 function allocateEventsToOperatorsLocal(eventsObj, sessionsObj, rangeDays) {
   const nowSec = Math.floor(Date.now() / 1000);
   const cutoffSec = nowSec - rangeDays * 86400;
@@ -3351,7 +3230,14 @@ function allocateEventsToOperatorsLocal(eventsObj, sessionsObj, rangeDays) {
   return { dailyByOperator };
 }
 
-// Refresh Overview periodically for status/speed drift even without new data
+// Start loading
+onAuthStateChanged(auth, (user) => {
+  if (user && user.providerData.length > 0) {
+    loadMachineList();
+    loadOperatorNames();
+  }
+});
+
 setInterval(renderOverview, 15000);
 </script>
 </body>

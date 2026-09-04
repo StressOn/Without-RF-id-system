@@ -59,6 +59,41 @@
   }
   .status-dot.live { background: var(--ok); }
 
+  /* --- Machine selector for testing --- */
+  .machine-selector {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .machine-selector .title {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .machine-selector select {
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  .machine-selector button {
+    width: 100%;
+    background: var(--amber);
+    color: #1a1204;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
   /* --- Currently running card --- */
   .running-card {
     background: var(--panel);
@@ -107,6 +142,8 @@
   .btn-primary:active { background: var(--amber-dim); }
   .btn-danger { background: var(--err); color: #fff; }
   .btn-danger:active { opacity: 0.85; }
+  .btn-secondary { background: var(--line); color: var(--text); }
+  .btn-secondary:active { opacity: 0.85; }
 
   .msg {
     margin-top: 16px;
@@ -128,6 +165,40 @@
   }
 
   .hidden { display: none; }
+
+  /* Scrap entry styles */
+  .scrap-prompt {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .scrap-prompt .title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--amber);
+  }
+  .scrap-prompt .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+  .btn-row button {
+    flex: 1;
+    padding: 14px;
+    font-size: 15px;
+  }
+  .scrap-prompt input {
+    font-size: 24px;
+    padding: 16px;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -138,6 +209,17 @@
       <div class="label"><span class="status-dot" id="connDot"></span>Machine</div>
       <div class="id" id="machineIdDisplay">—</div>
     </div>
+  </div>
+
+  <!-- Machine selector for testing (shown when no machine in URL) -->
+  <div id="machineSelector" class="machine-selector hidden">
+    <div class="title">🔧 Select Machine (for testing)</div>
+    <select id="manualMachineSelect">
+      <option value="M01-A">M01-A</option>
+      <option value="M01-B">M01-B</option>
+      <option value="M01-C">M01-C</option>
+    </select>
+    <button id="setMachineBtn">Go to Machine</button>
   </div>
 
   <!-- Shown when someone is already punched in -->
@@ -163,13 +245,27 @@
     <button class="btn-primary" id="punchInBtn">Punch In</button>
   </div>
 
+  <!-- Scrap entry - shown during punch out -->
+  <div id="scrapView" class="hidden">
+    <div class="scrap-prompt">
+      <div class="title">📊 Enter Scrap Quantity</div>
+      <div class="subtitle">How many units were scrapped during this session?</div>
+      <div class="field">
+        <label for="scrapQuantity">Scrap Units</label>
+        <input id="scrapQuantity" type="number" min="0" step="1" placeholder="0">
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" id="scrapCancelBtn">Skip (0 scrap)</button>
+        <button class="btn-primary" id="scrapConfirmBtn">Confirm & Punch Out</button>
+      </div>
+    </div>
+  </div>
+
   <div class="msg" id="msg"></div>
 
   <div class="footer-note">
     Scan this machine's QR code again anytime to punch out.<br>
-    <a href="production.html" style="color: var(--amber); text-decoration: none;">Production Dashboard</a>
-    &nbsp;·&nbsp;
-    <a href="dashboard.html" style="color: var(--amber); text-decoration: none;">Login / Operator Dashboard</a>
+    <a href="dashboard11.html" style="color: var(--amber); text-decoration: none;">Production Dashboard</a>
   </div>
 </div>
 
@@ -194,7 +290,7 @@ const auth = getAuth(app);
 
 // Machine ID comes from the QR code: punch.html?machine=M01
 const params = new URLSearchParams(window.location.search);
-const machineId = params.get('machine');
+let machineId = params.get('machine');
 
 const machineIdDisplay = document.getElementById('machineIdDisplay');
 const connDot = document.getElementById('connDot');
@@ -203,17 +299,44 @@ const loginView = document.getElementById('loginView');
 const runningOpName = document.getElementById('runningOpName');
 const runningSince = document.getElementById('runningSince');
 const msg = document.getElementById('msg');
+const scrapView = document.getElementById('scrapView');
+const scrapQuantity = document.getElementById('scrapQuantity');
+const scrapConfirmBtn = document.getElementById('scrapConfirmBtn');
+const scrapCancelBtn = document.getElementById('scrapCancelBtn');
+const machineSelector = document.getElementById('machineSelector');
+
+let pendingPunchOut = null;
 
 function showMsg(text, type) {
   msg.textContent = text;
   msg.className = 'msg show ' + type;
 }
 
+// Helper: dateKeyFor - same 7am-7am shift logic as dashboard
+const SHIFT_START_HOUR = 7;
+const FACTORY_UTC_OFFSET_MINUTES = 330;
+
+function dateKeyFor(ts) {
+  const localTs = ts + FACTORY_UTC_OFFSET_MINUTES * 60;
+  const shifted = new Date((localTs - SHIFT_START_HOUR * 3600) * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+// Handle manual machine selection
+document.getElementById('setMachineBtn').addEventListener('click', () => {
+  const selected = document.getElementById('manualMachineSelect').value;
+  if (selected) {
+    window.location.search = '?machine=' + selected;
+  }
+});
+
 if (!machineId) {
-  machineIdDisplay.textContent = 'Unknown';
-  showMsg('No machine ID found in this QR code. Ask maintenance to reprint it.', 'err');
+  machineIdDisplay.textContent = 'Select a machine';
+  machineSelector.classList.remove('hidden');
+  showMsg('Please select a machine from the dropdown above.', 'err');
 } else {
   machineIdDisplay.textContent = machineId;
+  machineSelector.classList.add('hidden');
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -234,12 +357,14 @@ function watchMachineState() {
     if (data && data.operatorId) {
       runningView.classList.remove('hidden');
       loginView.classList.add('hidden');
+      scrapView.classList.add('hidden');
       runningOpName.textContent = data.name || data.operatorId;
       const since = data.punchInTime ? new Date(data.punchInTime * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
       runningSince.textContent = since ? `Punched in at ${since}` : '';
     } else {
       runningView.classList.add('hidden');
       loginView.classList.remove('hidden');
+      scrapView.classList.add('hidden');
     }
   });
 }
@@ -265,7 +390,7 @@ document.getElementById('punchInBtn').addEventListener('click', async () => {
       return;
     }
 
-    const punchInTime = Math.floor(Date.now() / 1000); // seconds, to match ESP32 timestamps
+    const punchInTime = Math.floor(Date.now() / 1000);
     const sessionRef = push(ref(db, `Sessions/${machineId}`));
     await set(sessionRef, {
       operatorId,
@@ -289,21 +414,96 @@ document.getElementById('punchInBtn').addEventListener('click', async () => {
   }
 });
 
+// Handle punch out button - show scrap entry
 document.getElementById('punchOutBtn').addEventListener('click', async () => {
   try {
     const currentOpSnap = await get(ref(db, `Machines/${machineId}/currentOperator`));
     const currentOp = currentOpSnap.val();
-    if (!currentOp) return;
+    if (!currentOp) {
+      showMsg('No active session found.', 'err');
+      return;
+    }
+
+    pendingPunchOut = currentOp;
+    scrapView.classList.remove('hidden');
+    scrapQuantity.value = '';
+    scrapQuantity.focus();
+    showMsg('', '');
+    
+  } catch (err) {
+    showMsg('Error: ' + err.message, 'err');
+  }
+});
+
+// Confirm punch out with scrap
+scrapConfirmBtn.addEventListener('click', async () => {
+  await completePunchOut(parseFloat(scrapQuantity.value) || 0);
+});
+
+// Cancel / skip scrap
+scrapCancelBtn.addEventListener('click', async () => {
+  await completePunchOut(0);
+});
+
+scrapQuantity.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = parseFloat(scrapQuantity.value) || 0;
+    completePunchOut(val);
+  }
+});
+
+async function completePunchOut(scrapAmount) {
+  try {
+    const currentOp = pendingPunchOut;
+    if (!currentOp) {
+      showMsg('No active session found.', 'err');
+      return;
+    }
+
+    const punchOutTime = Math.floor(Date.now() / 1000);
 
     if (currentOp.sessionId) {
-      await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/punchOut`), Math.floor(Date.now() / 1000));
+      await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/punchOut`), punchOutTime);
       await set(ref(db, `Sessions/${machineId}/${currentOp.sessionId}/status`), 'closed');
     }
 
+    const sessionSnap = await get(ref(db, `Sessions/${machineId}/${currentOp.sessionId}`));
+    const sessionData = sessionSnap.val();
+
+    if (scrapAmount > 0) {
+      const dateKey = dateKeyFor(sessionData.punchIn || punchOutTime);
+      const scrapRef = push(ref(db, `QualityDefects/${dateKey}/${machineId}`));
+      await set(scrapRef, {
+        defectType: 'Production Scrap',
+        quantity: scrapAmount,
+        productionOperator: sessionData.name || sessionData.operatorId,
+        reportedByName: sessionData.name || sessionData.operatorId,
+        reportedBy: sessionData.operatorId,
+        timestamp: punchOutTime,
+        sessionId: currentOp.sessionId,
+        isScrap: true,
+        coilNo: '',
+        drumNo: ''
+      });
+      
+      showMsg(`✅ Punched out. ${scrapAmount} scrap unit(s) recorded.`, 'ok');
+    } else {
+      showMsg('✅ Punched out. No scrap recorded.', 'ok');
+    }
+
     await set(ref(db, `Machines/${machineId}/currentOperator`), null);
-    showMsg('Punched out. Thanks!', 'ok');
+    scrapView.classList.add('hidden');
+    pendingPunchOut = null;
+    
   } catch (err) {
     showMsg('Punch out failed: ' + err.message, 'err');
+  }
+}
+
+document.getElementById('pin').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('punchInBtn').click();
   }
 });
 </script>

@@ -64,6 +64,15 @@
 </head>
 <body>
 
+<!-- ================= SESSION-TAKEN-OVER OVERLAY ================= -->
+<div id="sessionTakenOverlay" style="display:none;position:fixed;inset:0;background:var(--ink);z-index:9999;align-items:center;justify-content:center;">
+  <div style="max-width:360px;text-align:center;padding:32px;">
+    <h1 style="font-size:20px;margin:0 0 12px;">Signed Out</h1>
+    <p style="color:var(--text-dim);font-size:14px;line-height:1.6;">This account was just signed in on another screen. Only one screen can be active at a time, so this one has been signed out.</p>
+    <button id="sessionTakenReloginBtn" style="margin-top:16px;background:var(--amber);color:#1a1204;border:none;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;">Log In Again</button>
+  </div>
+</div>
+
 <!-- ================= LOGIN SCREEN ================= -->
 <div id="loginScreen">
   <div class="login-card">
@@ -629,9 +638,11 @@ onAuthStateChanged(auth, (user) => {
     loginScreen.style.display = 'none';
     appShell.style.display = 'block';
     userEmailLabel.textContent = user.email;
+    initSessionLock(user.uid);
   } else {
     loginScreen.style.display = 'flex';
     appShell.style.display = 'none';
+    teardownSessionLock(); // see note by initSessionLock() - without this, logging back in without a page refresh would silently skip re-claiming the session
   }
 });
 
@@ -700,6 +711,67 @@ function resizeChartsForTab(tab) {
    changes needed.
    ========================================================= */
 import { ref as dbRef, onValue as dbOnValue, off as dbOff, set as dbSet } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+
+/* =========================================================
+   SINGLE-SESSION ENFORCEMENT
+   Firebase Auth itself allows the same email/password to be
+   signed in from any number of devices at once - this adds
+   "only the most recent login stays active" on top of that,
+   for this one shared login. Mechanism: every login writes a
+   random session ID to ActiveSessions/{uid}, overwriting
+   whatever was there. Every open tab watches that same path -
+   the moment it sees an ID that isn't its own, it knows a
+   newer login happened elsewhere and locks itself out. Last
+   login always wins; nothing needs cleanup on logout/disconnect
+   for this to work correctly.
+   ========================================================= */
+let mySessionId = null;
+let sessionLockInitialized = false;
+let activeSessionRef = null;
+
+function initSessionLock(uid) {
+  if (sessionLockInitialized) return; // onAuthStateChanged can re-fire (e.g. token refresh) - only claim once per login
+  sessionLockInitialized = true;
+
+  mySessionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+  activeSessionRef = dbRef(db, `ActiveSessions/${uid}`);
+
+  dbSet(activeSessionRef, {
+    sessionId: mySessionId,
+    loginTime: Math.floor(Date.now() / 1000),
+    device: (navigator.userAgent || '').slice(0, 120)
+  });
+
+  dbOnValue(activeSessionRef, (snap) => {
+    const data = snap.val();
+    if (data && data.sessionId && data.sessionId !== mySessionId) {
+      // Someone else logged into this same account more recently than us -
+      // this tab is no longer the active session.
+      document.getElementById('sessionTakenOverlay').style.display = 'flex';
+      document.getElementById('appShell').style.display = 'none';
+      signOut(auth).catch(() => {});
+    }
+  });
+}
+
+// Without this, logging out and back in within the SAME tab (no page
+// reload) would leave sessionLockInitialized stuck at true, so the next
+// login would silently skip claiming a session at all - defeating the
+// whole mechanism for that tab until it's manually refreshed. Called on
+// every sign-out (voluntary logout AND being kicked out by a newer login),
+// so either way, a subsequent login in this tab starts clean.
+function teardownSessionLock() {
+  if (activeSessionRef) {
+    dbOff(activeSessionRef);
+    activeSessionRef = null;
+  }
+  sessionLockInitialized = false;
+  mySessionId = null;
+}
+
+document.getElementById('sessionTakenReloginBtn').addEventListener('click', () => {
+  location.reload();
+});
 
 const OFFLINE_AFTER_SEC = 120;
 const IDLE_AFTER_SEC = 300;
